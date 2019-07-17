@@ -24,7 +24,7 @@ inputText
   :: (Monad m, FormError error, PathPiece text, Applicative f)
   => (input -> Either error text)
   -> text
-  -> Form m input error (HtmlT f ()) () text
+  -> Form m input error (HtmlT f ()) text
 inputText getInput initialValue = G.input getInput inputField initialValue
   where
     inputField i a = input_ [type_ "text", id_ (toPathPiece i), name_ (toPathPiece i), value_ (toPathPiece a)]
@@ -33,7 +33,7 @@ inputPassword
   :: (Monad m, FormError error, PathPiece text, Applicative f)
   => (input -> Either error text)
   -> text
-  -> Form m input error (HtmlT f ()) () text
+  -> Form m input error (HtmlT f ()) text
 inputPassword getInput initialValue = G.input getInput inputField initialValue
   where
     inputField i a = input_ [type_ "password", id_ (toPathPiece i), name_ (toPathPiece i), value_ (toPathPiece a)]
@@ -42,7 +42,7 @@ inputSubmit
   :: (Monad m, FormError error, PathPiece text, Applicative f)
   => (input -> Either error text)
   -> text
-  -> Form m input error (HtmlT f ()) () (Maybe text)
+  -> Form m input error (HtmlT f ()) (Maybe text)
 inputSubmit getInput initialValue = G.inputMaybe getInput inputField initialValue
   where
     inputField i a = input_ [type_ "submit", id_ (toPathPiece i), name_ (toPathPiece i), value_ (toPathPiece a)]
@@ -50,7 +50,7 @@ inputSubmit getInput initialValue = G.inputMaybe getInput inputField initialValu
 inputReset
   :: (Monad m, FormError error, PathPiece text, Applicative f)
   => text
-  -> Form m input error (HtmlT f ()) () ()
+  -> Form m input error (HtmlT f ()) ()
 inputReset lbl = G.inputNoData inputField lbl
   where
     inputField i a = input_ [type_ "submit", id_ (toPathPiece i), name_ (toPathPiece i), value_ (toPathPiece a)]
@@ -59,7 +59,7 @@ inputHidden
   :: (Monad m, FormError error, PathPiece text, Applicative f)
   => (input -> Either error text)
   -> text
-  -> Form m input error (HtmlT f ()) () text
+  -> Form m input error (HtmlT f ()) text
 inputHidden getInput initialValue = G.input getInput inputField initialValue
   where
     inputField i a = input_ [type_ "hidden", id_ (toPathPiece i), name_ (toPathPiece i), value_ (toPathPiece a)]
@@ -67,7 +67,7 @@ inputHidden getInput initialValue = G.input getInput inputField initialValue
 inputButton
   :: (Monad m, FormError error, PathPiece text, Applicative f)
   => text
-  -> Form m input error (HtmlT f ()) () ()
+  -> Form m input error (HtmlT f ()) ()
 inputButton label = G.inputNoData inputField label
   where
     inputField i a = input_ [type_ "button", id_ (toPathPiece i), name_ (toPathPiece i), value_ (toPathPiece a)]
@@ -78,7 +78,7 @@ textarea
   -> Int -- ^ cols
   -> Int -- ^ rows
   -> text -- ^ initial text
-  -> Form m input error (HtmlT f ()) () text
+  -> Form m input error (HtmlT f ()) text
 textarea getInput cols rows initialValue = G.input getInput textareaView initialValue
   where
     textareaView i txt =
@@ -95,7 +95,7 @@ textarea getInput cols rows initialValue = G.input getInput textareaView initial
 -- This control may succeed even if the user does not actually select a file to upload. In that case the uploaded name will likely be \"\" and the file contents will be empty as well.
 inputFile
   :: (Monad m, FormError error, FormInput input, ErrorInputType error ~ input, Applicative f)
-  => Form m input error (HtmlT f ()) () (FileType input)
+  => Form m input error (HtmlT f ()) (FileType input)
 inputFile = G.inputFile fileView
   where
     fileView i = input_ [type_ "file", id_ (toPathPiece i), name_ (toPathPiece i)]
@@ -106,7 +106,7 @@ buttonSubmit
   => (input -> Either error text)
   -> text
   -> children
-  -> Form m input error (HtmlT f ()) () (Maybe text)
+  -> Form m input error (HtmlT f ()) (Maybe text)
 buttonSubmit getInput text c = G.inputMaybe getInput inputField text
   where
     inputField i a = button_ [type_ "submit", id_ (toPathPiece i), name_ (toPathPiece i), value_ (toPathPiece a)] $ toHtml c
@@ -117,7 +117,7 @@ buttonSubmit getInput text c = G.inputMaybe getInput inputField text
 buttonReset
   :: (Monad m, FormError error, ToHtml children, Monad f)
   => children
-  -> Form m input error (HtmlT f ()) () ()
+  -> Form m input error (HtmlT f ()) ()
 buttonReset c = G.inputNoData inputField Nothing
   where
     inputField i a = button_ [type_ "reset", id_ (toPathPiece i), name_ (toPathPiece i)] $ toHtml c
@@ -128,7 +128,7 @@ buttonReset c = G.inputNoData inputField Nothing
 button
   :: (Monad m, FormError error, ToHtml children, Monad f)
   => children
-  -> Form m input error (HtmlT f ()) () ()
+  -> Form m input error (HtmlT f ()) ()
 button c = G.inputNoData inputField Nothing
   where
     inputField i a = button_ [type_ "button", id_ (toPathPiece i), name_ (toPathPiece i)] $ toHtml c
@@ -141,12 +141,12 @@ button c = G.inputNoData inputField Nothing
 label
   :: (Monad m, Monad f)
   => HtmlT f ()
-  -> Form m input error (HtmlT f ()) () ()
+  -> Form m input error (HtmlT f ()) ()
 label c = G.label mkLabel
   where
     mkLabel i = label_ [for_ (toPathPiece i)] c
 
-arbitraryHtml :: Monad m => view -> Form m input error view () ()
+arbitraryHtml :: Monad m => view -> Form m input error view ()
 arbitraryHtml wrap =
   Form $ do
     id' <- getFormId
@@ -154,8 +154,7 @@ arbitraryHtml wrap =
       ( View (const $ wrap)
       , pure
         ( Ok $ Proved
-          { proofs = ()
-          , pos = unitRange id'
+          { pos = unitRange id'
           , unProved = ()
           }
         )
@@ -165,7 +164,7 @@ inputInt
   :: (Monad m, FormError err, Applicative f)
   => (input -> Either err Int)
   -> Int
-  -> Form m input err (HtmlT f ()) () Int
+  -> Form m input err (HtmlT f ()) Int
 inputInt getInput initialValue = G.input getInput inputField initialValue
   where
     min = toPathPiece (minBound :: Int)
@@ -186,7 +185,7 @@ inputDouble
   :: (Monad m, FormError err, Applicative f)
   => (input -> Either err Double)
   -> Double
-  -> Form m input err (HtmlT f ()) () Double
+  -> Form m input err (HtmlT f ()) Double
 inputDouble getInput initialValue = G.input getInput inputField initialValue
   where
     inputField i a = input_ [type_ "number", step_ "any", id_ (toPathPiece i), name_ (toPathPiece i), value_ (T.pack $ show a)]
@@ -200,7 +199,7 @@ inputDouble getInput initialValue = G.input getInput inputField initialValue
 inputCheckbox
   :: forall x error input m f. (Monad m, FormInput input, FormError error, ErrorInputType error ~ input, Applicative f)
   => Bool -- ^ initially checked
-  -> Form m input error (HtmlT f ()) () Bool
+  -> Form m input error (HtmlT f ()) Bool
 inputCheckbox initiallyChecked =
   Form $ do
     i <- getFormId
@@ -223,8 +222,7 @@ inputCheckbox initiallyChecked =
             , pure $
               Ok
                 ( Proved
-                  { proofs = ()
-                  , pos = unitRange i
+                  { pos = unitRange i
                   , unProved = if checked then True else False
                   }
                 )
@@ -236,7 +234,7 @@ inputCheckboxes
   :: (Functor m, Monad m, FormError error, ErrorInputType error ~ input, FormInput input, ToHtml lbl, Monad f)
   => [(a, lbl)] -- ^ value, label, initially checked
   -> (a -> Bool) -- ^ function which indicates if a value should be checked initially
-  -> Form m input error (HtmlT f ()) () [a]
+  -> Form m input error (HtmlT f ()) [a]
 inputCheckboxes choices isChecked =
   G.inputMulti choices mkCheckboxes isChecked
   where
@@ -254,7 +252,7 @@ inputRadio
   :: (Functor m, Monad m, FormError error, ErrorInputType error ~ input, FormInput input, ToHtml lbl, Monad f)
   => [(a, lbl)] -- ^ value, label, initially checked
   -> (a -> Bool) -- ^ isDefault
-  -> Form m input error (HtmlT f ()) () a
+  -> Form m input error (HtmlT f ()) a
 inputRadio choices isDefault =
   G.inputChoice isDefault choices mkRadios
   where
@@ -274,7 +272,7 @@ select
   :: (Functor m, Monad m, FormError error, ErrorInputType error ~ input, FormInput input, ToHtml lbl, Monad f)
   => [(a, lbl)] -- ^ value, label
   -> (a -> Bool) -- ^ isDefault, must match *exactly one* element in the list of choices
-  -> Form m input error (HtmlT f ()) () a
+  -> Form m input error (HtmlT f ()) a
 select choices isDefault =
   G.inputChoice isDefault choices mkSelect
   where
@@ -297,7 +295,7 @@ selectMultiple
   :: (Functor m, Monad m, FormError error, ErrorInputType error ~ input, FormInput input, ToHtml lbl, Monad f)
   => [(a, lbl)] -- ^ value, label, initially checked
   -> (a -> Bool) -- ^ isSelected initially
-  -> Form m input error (HtmlT f ()) () [a]
+  -> Form m input error (HtmlT f ()) [a]
 selectMultiple choices isSelected =
   G.inputMulti choices mkSelect isSelected
   where
@@ -316,7 +314,7 @@ selectMultiple choices isSelected =
 {-
 inputMultiSelectOptGroup :: (Functor m, XMLGenerator x, EmbedAsChild x groupLbl, EmbedAsChild x lbl, EmbedAsAttr x (Attr String FormId), FormError error, ErrorInputType error ~ input, FormInput input, Monad m, Applicative f) =>
                    [(groupLbl, [(a, lbl, Bool)])]  -- ^ value, label, initially checked
-                -> Form m input error (HtmlT f ()) () [a]
+                -> Form m input error (HtmlT f ()) [a]
 inputMultiSelectOptGroup choices =
     G.inputMulti choices mkSelect
     where
@@ -340,7 +338,7 @@ inputMultiSelectOptGroup choices =
 -- The @<\ul\>@ will have the attribute @class=\"ditto-error-list\"@.
 errorList
   :: (Monad m, ToHtml error, Monad f)
-  => Form m input error (HtmlT f ()) () ()
+  => Form m input error (HtmlT f ()) ()
 errorList = G.errors mkErrors
   where
     mkErrors :: Monad f => ToHtml a => [a] -> HtmlT f ()
@@ -356,7 +354,7 @@ errorList = G.errors mkErrors
 -- The @<\ul\>@ will have the attribute @class=\"ditto-error-list\"@.
 childErrorList
   :: (Monad m, ToHtml error, Monad f)
-  => Form m input error (HtmlT f ()) () ()
+  => Form m input error (HtmlT f ()) ()
 childErrorList = G.childErrors mkErrors
   where
     mkErrors :: Monad f => ToHtml a => [a] -> HtmlT f ()
@@ -366,36 +364,36 @@ childErrorList = G.childErrors mkErrors
     mkError e = li_ [] $ toHtml e
 
 -- | create a @\<br\>@ tag.
-br :: (Monad m, Applicative f) => Form m input error (HtmlT f ()) () ()
+br :: (Monad m, Applicative f) => Form m input error (HtmlT f ()) ()
 br = view (br_ [])
 
 -- | wrap a @\<fieldset class=\"ditto\"\>@ around a 'Form'
 --
 fieldset
   :: (Monad m, Functor m, Applicative f)
-  => Form m input error (HtmlT f ()) proof a
-  -> Form m input error (HtmlT f ()) proof a
+  => Form m input error (HtmlT f ()) a
+  -> Form m input error (HtmlT f ()) a
 fieldset frm = mapView (fieldset_ [class_ "ditto"]) frm
 
 -- | wrap an @\<ol class=\"ditto\"\>@ around a 'Form'
 ol
   :: (Monad m, Functor m, Applicative f)
-  => Form m input error (HtmlT f ()) proof a
-  -> Form m input error (HtmlT f ()) proof a
+  => Form m input error (HtmlT f ()) a
+  -> Form m input error (HtmlT f ()) a
 ol frm = mapView (ol_ [class_ "ditto"]) frm
 
 -- | wrap a @\<ul class=\"ditto\"\>@ around a 'Form'
 ul
   :: (Monad m, Functor m, Applicative f)
-  => Form m input error (HtmlT f ()) proof a
-  -> Form m input error (HtmlT f ()) proof a
+  => Form m input error (HtmlT f ()) a
+  -> Form m input error (HtmlT f ()) a
 ul frm = mapView (ul_ [class_ "ditto"]) frm
 
 -- | wrap a @\<li class=\"ditto\"\>@ around a 'Form'
 li
   :: (Monad m, Functor m, Applicative f)
-  => Form m input error (HtmlT f ()) proof a
-  -> Form m input error (HtmlT f ()) proof a
+  => Form m input error (HtmlT f ()) a
+  -> Form m input error (HtmlT f ()) a
 li frm = mapView (li_ [class_ "ditto"]) frm
 
 -- | create @\<form action=action method=\"GET\" enctype=\"multipart/form-data\"\>@
@@ -429,7 +427,7 @@ formGenPOST action hidden children = do
 -- | add an attribute to the 'Html' for a form element.
 setAttr
   :: (Monad m, Functor m, Applicative f)
-  => Form m input error (HtmlT f ()) proof a
+  => Form m input error (HtmlT f ()) a
   -> [Attribute]
-  -> Form m input error (HtmlT f ()) proof a
+  -> Form m input error (HtmlT f ()) a
 setAttr form attr = mapView (\x -> x `with` attr) form
