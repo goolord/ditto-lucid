@@ -2,14 +2,14 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
 
-module Ditto.Lucid.Named where
+module Ditto.Lucid.Unnamed where
 
 import Data.Foldable (traverse_)
 import Data.Monoid ((<>), mconcat, mempty)
 import Data.Text (Text)
 import Ditto.Backend
 import Ditto.Core
-import Ditto.Generalized.Named as G
+import Ditto.Generalized as G
 import Ditto.Lucid
 import Ditto.Result (FormId, Result (Ok), unitRange)
 import Lucid
@@ -20,58 +20,52 @@ import qualified Text.Read
 inputText
   :: (Monad m, FormError error, PathPiece text, Applicative f)
   => (input -> Either error text)
-  -> String
   -> text
   -> Form m input error (HtmlT f ()) text
-inputText getInput name initialValue = G.input getInput inputField initialValue name
+inputText getInput initialValue = G.input getInput inputField initialValue
   where
     inputField i a = input_ [type_ "text", id_ (toPathPiece i), name_ (toPathPiece i), value_ (toPathPiece a)]
 
 inputPassword
   :: (Monad m, FormError error, PathPiece text, Applicative f)
   => (input -> Either error text)
-  -> String
   -> text
   -> Form m input error (HtmlT f ()) text
-inputPassword getInput name initialValue = G.input getInput inputField initialValue name
+inputPassword getInput initialValue = G.input getInput inputField initialValue
   where
     inputField i a = input_ [type_ "password", id_ (toPathPiece i), name_ (toPathPiece i), value_ (toPathPiece a)]
 
 inputSubmit
   :: (Monad m, FormError error, PathPiece text, Applicative f)
   => (input -> Either error text)
-  -> String
   -> text
   -> Form m input error (HtmlT f ()) (Maybe text)
-inputSubmit getInput name initialValue = G.inputMaybe getInput inputField initialValue name
+inputSubmit getInput initialValue = G.inputMaybe getInput inputField initialValue
   where
     inputField i a = input_ [type_ "submit", id_ (toPathPiece i), name_ (toPathPiece i), value_ (toPathPiece a)]
 
 inputReset
   :: (Monad m, FormError error, PathPiece text, Applicative f)
-  => String
-  -> text
+  => text
   -> Form m input error (HtmlT f ()) ()
-inputReset name lbl = G.inputNoData inputField lbl name
+inputReset lbl = G.inputNoData inputField lbl
   where
     inputField i a = input_ [type_ "submit", id_ (toPathPiece i), name_ (toPathPiece i), value_ (toPathPiece a)]
 
 inputHidden
   :: (Monad m, FormError error, PathPiece text, Applicative f)
   => (input -> Either error text)
-  -> String
   -> text
   -> Form m input error (HtmlT f ()) text
-inputHidden getInput name initialValue = G.input getInput inputField initialValue name
+inputHidden getInput initialValue = G.input getInput inputField initialValue
   where
     inputField i a = input_ [type_ "hidden", id_ (toPathPiece i), name_ (toPathPiece i), value_ (toPathPiece a)]
 
 inputButton
   :: (Monad m, FormError error, PathPiece text, Applicative f)
-  => String
-  -> text
+  => text
   -> Form m input error (HtmlT f ()) ()
-inputButton name label = G.inputNoData inputField label name
+inputButton label = G.inputNoData inputField label
   where
     inputField i a = input_ [type_ "button", id_ (toPathPiece i), name_ (toPathPiece i), value_ (toPathPiece a)]
 
@@ -80,10 +74,9 @@ textarea
   => (input -> Either error text)
   -> Int -- ^ cols
   -> Int -- ^ rows
-  -> String
   -> text -- ^ initial text
   -> Form m input error (HtmlT f ()) text
-textarea getInput cols rows name initialValue = G.input getInput textareaView initialValue name
+textarea getInput cols rows initialValue = G.input getInput textareaView initialValue
   where
     textareaView i txt =
       textarea_
@@ -99,9 +92,8 @@ textarea getInput cols rows name initialValue = G.input getInput textareaView in
 -- This control may succeed even if the user does not actually select a file to upload. In that case the uploaded name will likely be \"\" and the file contents will be empty as well.
 inputFile
   :: (Monad m, FormError error, FormInput input, ErrorInputType error ~ input, Applicative f)
-  => String
-  -> Form m input error (HtmlT f ()) (FileType input)
-inputFile name = G.inputFile fileView name
+  => Form m input error (HtmlT f ()) (FileType input)
+inputFile = G.inputFile fileView
   where
     fileView i = input_ [type_ "file", id_ (toPathPiece i), name_ (toPathPiece i)]
 
@@ -109,11 +101,10 @@ inputFile name = G.inputFile fileView name
 buttonSubmit
   :: (Monad m, FormError error, PathPiece text, ToHtml children, Monad f)
   => (input -> Either error text)
-  -> String
   -> text
   -> children
   -> Form m input error (HtmlT f ()) (Maybe text)
-buttonSubmit getInput name text c = G.inputMaybe getInput inputField text name
+buttonSubmit getInput text c = G.inputMaybe getInput inputField text
   where
     inputField i a = button_ [type_ "submit", id_ (toPathPiece i), name_ (toPathPiece i), value_ (toPathPiece a)] $ toHtml c
 
@@ -121,25 +112,23 @@ buttonSubmit getInput name text c = G.inputMaybe getInput inputField text name
 --
 -- This element does not add any data to the form data set.
 buttonReset
-  :: (Monad m, FormError error, Monad f)
-  => String
-  -> HtmlT f ()
+  :: (Monad m, FormError error, ToHtml children, Monad f)
+  => children
   -> Form m input error (HtmlT f ()) ()
-buttonReset name c = G.inputNoData inputField Nothing name
+buttonReset c = G.inputNoData inputField Nothing
   where
-    inputField i a = button_ [type_ "reset", id_ (toPathPiece i), name_ (toPathPiece i)] c
+    inputField i a = button_ [type_ "reset", id_ (toPathPiece i), name_ (toPathPiece i)] $ toHtml c
 
 -- | create a  @\<button type=\"button\"\>\<\/button\>@ element
 --
 -- This element does not add any data to the form data set.
 button
-  :: (Monad m, FormError error, Monad f)
-  => String
-  -> HtmlT f ()
+  :: (Monad m, FormError error, ToHtml children, Monad f)
+  => children
   -> Form m input error (HtmlT f ()) ()
-button name c = G.inputNoData inputField Nothing name
+button c = G.inputNoData inputField Nothing
   where
-    inputField i a = button_ [type_ "button", id_ (toPathPiece i), name_ (toPathPiece i)] c
+    inputField i a = button_ [type_ "button", id_ (toPathPiece i), name_ (toPathPiece i)] $ toHtml c
 
 -- | create a @\<label\>@ element.
 --
@@ -155,15 +144,25 @@ label c = G.label mkLabel
     mkLabel i = label_ [for_ (toPathPiece i)] c
 
 arbitraryHtml :: Monad m => view -> Form m input error view ()
-arbitraryHtml = view
+arbitraryHtml wrap =
+  Form $ do
+    id' <- getFormId
+    pure
+      ( View (const $ wrap)
+      , pure
+        ( Ok $ Proved
+          { pos = unitRange id'
+          , unProved = ()
+          }
+        )
+      )
 
 inputInt
   :: (Monad m, FormError err, Applicative f)
   => (input -> Either err Int)
-  -> String
   -> Int
   -> Form m input err (HtmlT f ()) Int
-inputInt getInput name initialValue = G.input getInput inputField initialValue name
+inputInt getInput initialValue = G.input getInput inputField initialValue
   where
     inputField i a =
       input_
@@ -176,10 +175,9 @@ inputInt getInput name initialValue = G.input getInput inputField initialValue n
 inputDouble
   :: (Monad m, FormError err, Applicative f)
   => (input -> Either err Double)
-  -> String
   -> Double
   -> Form m input err (HtmlT f ()) Double
-inputDouble getInput name initialValue = G.input getInput inputField initialValue name
+inputDouble getInput initialValue = G.input getInput inputField initialValue
   where
     inputField i a = input_ [type_ "number", step_ "any", id_ (toPathPiece i), name_ (toPathPiece i), value_ (T.pack $ show a)]
 
@@ -225,11 +223,11 @@ inputCheckbox initiallyChecked =
 --
 inputCheckboxes
   :: (Functor m, Monad m, FormError error, ErrorInputType error ~ input, FormInput input, ToHtml lbl, Monad f)
-  => String
-  -> [(a, lbl)] -- ^ value, label, initially checked
+  => [(a, lbl)] -- ^ value, label, initially checked
   -> (a -> Bool) -- ^ function which indicates if a value should be checked initially
   -> Form m input error (HtmlT f ()) [a]
-inputCheckboxes name choices isChecked = G.inputMulti choices mkCheckboxes isChecked name
+inputCheckboxes choices isChecked =
+  G.inputMulti choices mkCheckboxes isChecked
   where
     mkCheckboxes nm choices' = mconcat $ concatMap (mkCheckbox nm) choices'
     mkCheckbox nm (i, val, lbl, checked) =
@@ -243,12 +241,11 @@ inputCheckboxes name choices isChecked = G.inputMulti choices mkCheckboxes isChe
 -- | Create a group of @\<input type=\"radio\"\>@ elements
 inputRadio
   :: (Functor m, Monad m, FormError error, ErrorInputType error ~ input, FormInput input, ToHtml lbl, Monad f)
-  => String
-  -> [(a, lbl)] -- ^ value, label, initially checked
+  => [(a, lbl)] -- ^ value, label, initially checked
   -> (a -> Bool) -- ^ isDefault
   -> Form m input error (HtmlT f ()) a
-inputRadio name choices isDefault =
-  G.inputChoice isDefault choices mkRadios name
+inputRadio choices isDefault =
+  G.inputChoice isDefault choices mkRadios
   where
     mkRadios nm choices' = mconcat $ concatMap (mkRadio nm) choices'
     mkRadio nm (i, val, lbl, checked) =
@@ -264,11 +261,11 @@ inputRadio name choices isDefault =
 -- see also: 'selectMultiple'
 select
   :: (Functor m, Monad m, FormError error, ErrorInputType error ~ input, FormInput input, ToHtml lbl, Monad f)
-  => String
-  -> [(a, lbl)] -- ^ value, label
+  => [(a, lbl)] -- ^ value, label
   -> (a -> Bool) -- ^ isDefault, must match *exactly one* element in the list of choices
   -> Form m input error (HtmlT f ()) a
-select name choices isDefault = G.inputChoice isDefault choices mkSelect name
+select choices isDefault =
+  G.inputChoice isDefault choices mkSelect
   where
     mkSelect :: (ToHtml lbl, Monad f) => FormId -> [(a, Int, lbl, Bool)] -> HtmlT f ()
     mkSelect nm choices' =
@@ -287,11 +284,11 @@ select name choices isDefault = G.inputChoice isDefault choices mkSelect name
 -- This creates a @\<select\>@ element which allows more than one item to be selected.
 selectMultiple
   :: (Functor m, Monad m, FormError error, ErrorInputType error ~ input, FormInput input, ToHtml lbl, Monad f)
-  => String
-  -> [(a, lbl)] -- ^ value, label, initially checked
+  => [(a, lbl)] -- ^ value, label, initially checked
   -> (a -> Bool) -- ^ isSelected initially
   -> Form m input error (HtmlT f ()) [a]
-selectMultiple name choices isSelected = G.inputMulti choices mkSelect isSelected name
+selectMultiple choices isSelected =
+  G.inputMulti choices mkSelect isSelected
   where
     mkSelect :: (ToHtml lbl, Monad f) => FormId -> [(a, Int, lbl, Bool)] -> HtmlT f ()
     mkSelect nm choices' =
@@ -326,4 +323,3 @@ inputMultiSelectOptGroup choices =
            <% lbl %>
           </option>
 -}
-
