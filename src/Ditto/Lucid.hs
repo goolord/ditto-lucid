@@ -167,18 +167,12 @@ inputInt
   -> Form m input err (HtmlT f ()) Int
 inputInt getInput initialValue = G.input getInput inputField initialValue
   where
-    min = toPathPiece (minBound :: Int)
-    {-# INLINE min #-}
-    max = toPathPiece (maxBound :: Int)
-    {-# INLINE max #-}
     inputField i a =
       input_
         [ type_ "number"
         , id_ (toPathPiece i)
         , name_ (toPathPiece i)
         , value_ (toPathPiece a)
-        , min_ min
-        , max_ max
         ]
 
 inputDouble
