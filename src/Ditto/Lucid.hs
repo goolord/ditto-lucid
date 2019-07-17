@@ -2,16 +2,16 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
 
-module Text.Reform.Lucid where
+module Ditto.Lucid where
 
 import Data.Foldable (traverse_)
 import Data.Monoid ((<>), mconcat, mempty)
 import Data.Text (Text)
 import Lucid
-import Text.Reform.Backend
-import Text.Reform.Core
-import Text.Reform.Generalized as G
-import Text.Reform.Result (FormId, Result (Ok), unitRange)
+import Ditto.Backend
+import Ditto.Core
+import Ditto.Generalized as G
+import Ditto.Result (FormId, Result (Ok), unitRange)
 import Web.PathPieces
 import qualified Data.Text as T
 import qualified Text.Read
@@ -337,7 +337,7 @@ inputMultiSelectOptGroup choices =
 
 -- | create a @\<ul\>@ which contains all the errors related to the 'Form'.
 --
--- The @<\ul\>@ will have the attribute @class=\"reform-error-list\"@.
+-- The @<\ul\>@ will have the attribute @class=\"ditto-error-list\"@.
 errorList
   :: (Monad m, ToHtml error, Monad f)
   => Form m input error (HtmlT f ()) () ()
@@ -345,7 +345,7 @@ errorList = G.errors mkErrors
   where
     mkErrors :: Monad f => ToHtml a => [a] -> HtmlT f ()
     mkErrors [] = mempty
-    mkErrors errs = ul_ [class_ "reform-error-list"] $ traverse_ mkError errs
+    mkErrors errs = ul_ [class_ "ditto-error-list"] $ traverse_ mkError errs
     mkError :: Monad f => ToHtml a => a -> HtmlT f ()
     mkError e = li_ [] $ toHtml e
 
@@ -353,7 +353,7 @@ errorList = G.errors mkErrors
 --
 -- Includes errors from child forms.
 --
--- The @<\ul\>@ will have the attribute @class=\"reform-error-list\"@.
+-- The @<\ul\>@ will have the attribute @class=\"ditto-error-list\"@.
 childErrorList
   :: (Monad m, ToHtml error, Monad f)
   => Form m input error (HtmlT f ()) () ()
@@ -361,7 +361,7 @@ childErrorList = G.childErrors mkErrors
   where
     mkErrors :: Monad f => ToHtml a => [a] -> HtmlT f ()
     mkErrors [] = mempty
-    mkErrors errs = ul_ [class_ "reform-error-list"] $ traverse_ mkError errs
+    mkErrors errs = ul_ [class_ "ditto-error-list"] $ traverse_ mkError errs
     mkError :: Monad f => ToHtml a => a -> HtmlT f ()
     mkError e = li_ [] $ toHtml e
 
@@ -369,34 +369,34 @@ childErrorList = G.childErrors mkErrors
 br :: (Monad m, Applicative f) => Form m input error (HtmlT f ()) () ()
 br = view (br_ [])
 
--- | wrap a @\<fieldset class=\"reform\"\>@ around a 'Form'
+-- | wrap a @\<fieldset class=\"ditto\"\>@ around a 'Form'
 --
 fieldset
   :: (Monad m, Functor m, Applicative f)
   => Form m input error (HtmlT f ()) proof a
   -> Form m input error (HtmlT f ()) proof a
-fieldset frm = mapView (fieldset_ [class_ "reform"]) frm
+fieldset frm = mapView (fieldset_ [class_ "ditto"]) frm
 
--- | wrap an @\<ol class=\"reform\"\>@ around a 'Form'
+-- | wrap an @\<ol class=\"ditto\"\>@ around a 'Form'
 ol
   :: (Monad m, Functor m, Applicative f)
   => Form m input error (HtmlT f ()) proof a
   -> Form m input error (HtmlT f ()) proof a
-ol frm = mapView (ol_ [class_ "reform"]) frm
+ol frm = mapView (ol_ [class_ "ditto"]) frm
 
--- | wrap a @\<ul class=\"reform\"\>@ around a 'Form'
+-- | wrap a @\<ul class=\"ditto\"\>@ around a 'Form'
 ul
   :: (Monad m, Functor m, Applicative f)
   => Form m input error (HtmlT f ()) proof a
   -> Form m input error (HtmlT f ()) proof a
-ul frm = mapView (ul_ [class_ "reform"]) frm
+ul frm = mapView (ul_ [class_ "ditto"]) frm
 
--- | wrap a @\<li class=\"reform\"\>@ around a 'Form'
+-- | wrap a @\<li class=\"ditto\"\>@ around a 'Form'
 li
   :: (Monad m, Functor m, Applicative f)
   => Form m input error (HtmlT f ()) proof a
   -> Form m input error (HtmlT f ()) proof a
-li frm = mapView (li_ [class_ "reform"]) frm
+li frm = mapView (li_ [class_ "ditto"]) frm
 
 -- | create @\<form action=action method=\"GET\" enctype=\"multipart/form-data\"\>@
 formGenGET
