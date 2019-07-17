@@ -19,6 +19,7 @@ source-repository head
 Library
   exposed-modules: 
     Ditto.Lucid
+    Ditto.Lucid.Named
   build-depends:
       base >4.5 && <5
     , lucid < 3.0.0
