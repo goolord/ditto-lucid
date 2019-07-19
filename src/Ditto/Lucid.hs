@@ -20,7 +20,7 @@ instance PathPiece FormId where
   toPathPiece fid = T.pack (show fid)
   fromPathPiece fidT = Nothing
 
--- | create @\<form action=action method=\"GET\" enctype=\"multipart/form-data\"\>@
+-- | create @\<form action=action method=\"GET\" enctype=\"application/xxx-form-urlencoded\"\>@
 formGenGET
   :: (Applicative m)
   => Text -- ^ action url
@@ -28,13 +28,13 @@ formGenGET
   -> HtmlT m b
   -> HtmlT m b
 formGenGET action hidden children = do
-  form_ [action_ action, method_ "GET", enctype_ "multipart/form-data"] $
+  form_ [action_ action, method_ "GET", enctype_ "application/xxx-form-urlencoded"] $
     traverse_ mkHidden hidden *>
     children
   where
     mkHidden (name, value) = input_ [type_ "hidden", name_ name, value_ value]
 
--- | create @\<form action=action method=\"POST\" enctype=\"multipart/form-data\"\>@
+-- | create @\<form action=action method=\"POST\" enctype=\"application/xxx-form-urlencoded\"\>@
 formGenPOST
   :: (Applicative m)
   => Text -- ^ action url
@@ -42,7 +42,7 @@ formGenPOST
   -> HtmlT m b
   -> HtmlT m b
 formGenPOST action hidden children = do
-  form_ [action_ action, method_ "POST", enctype_ "multipart/form-data"] $
+  form_ [action_ action, method_ "POST", enctype_ "application/xxx-form-urlencoded"] $
     traverse_ mkHidden hidden *>
     children
   where
