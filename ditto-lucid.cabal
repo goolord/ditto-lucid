@@ -1,5 +1,5 @@
 Name:                ditto-lucid
-Version:             0.1.1.1
+Version:             0.1.1.2
 Synopsis:            Add support for using lucid with Ditto
 Description:         Ditto is a library for building and validating forms using applicative functors. This package add support for using ditto with lucid.
 License:             BSD3
