@@ -149,8 +149,9 @@ button name c = G.inputNoData inputField Nothing name
 label
   :: (Monad m, Monad f)
   => HtmlT f ()
+  -> String
   -> Form m input error (HtmlT f ()) ()
-label c = G.label mkLabel
+label c name = G.label mkLabel name
   where
     mkLabel i = label_ [for_ (toPathPiece i)] c
 
