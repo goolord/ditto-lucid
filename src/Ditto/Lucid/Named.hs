@@ -193,10 +193,11 @@ inputDouble getInput name initialValue = G.input getInput inputField initialValu
 inputCheckbox
   :: forall x error input m f. (Monad m, FormInput input, FormError error, ErrorInputType error ~ input, Applicative f)
   => Bool -- ^ initially checked
+  -> String -- ^ name
   -> Form m input error (HtmlT f ()) Bool
-inputCheckbox initiallyChecked =
+inputCheckbox initiallyChecked name =
   Form $ do
-    i <- getFormId
+    i <- getNamedFormId name
     v <- getFormInput' i
     case v of
       Default -> mkCheckbox i initiallyChecked

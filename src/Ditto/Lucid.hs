@@ -64,11 +64,11 @@ errorList
   => Form m input error (HtmlT f ()) ()
 errorList = G.errors mkErrors
   where
-    mkErrors :: Monad f => ToHtml a => [a] -> HtmlT f ()
-    mkErrors [] = mempty
-    mkErrors errs = ul_ [class_ "ditto-error-list"] $ traverse_ mkError errs
-    mkError :: Monad f => ToHtml a => a -> HtmlT f ()
-    mkError e = li_ [] $ toHtml e
+  mkErrors :: Monad f => ToHtml a => [a] -> HtmlT f ()
+  mkErrors [] = mempty
+  mkErrors errs = ul_ [class_ "ditto-error-list"] $ traverse_ mkError errs
+  mkError :: Monad f => ToHtml a => a -> HtmlT f ()
+  mkError e = li_ [] $ toHtml e
 
 -- | create a @\<ul\>@ which contains all the errors related to the 'Form'.
 --
@@ -80,11 +80,11 @@ childErrorList
   => Form m input error (HtmlT f ()) ()
 childErrorList = G.childErrors mkErrors
   where
-    mkErrors :: Monad f => ToHtml a => [a] -> HtmlT f ()
-    mkErrors [] = mempty
-    mkErrors errs = ul_ [class_ "ditto-error-list"] $ traverse_ mkError errs
-    mkError :: Monad f => ToHtml a => a -> HtmlT f ()
-    mkError e = li_ [] $ toHtml e
+  mkErrors :: Monad f => ToHtml a => [a] -> HtmlT f ()
+  mkErrors [] = mempty
+  mkErrors errs = ul_ [class_ "ditto-error-list"] $ traverse_ mkError errs
+  mkError :: Monad f => ToHtml a => a -> HtmlT f ()
+  mkError e = li_ [] $ toHtml e
 
 -- | create a @\<br\>@ tag.
 br :: (Monad m, Applicative f) => Form m input error (HtmlT f ()) ()
