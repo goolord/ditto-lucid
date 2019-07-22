@@ -186,9 +186,8 @@ inputDouble getInput initialValue = G.input getInput inputField initialValue
 -- returns a 'Bool' indicating if it was checked or not.
 --
 -- see also 'inputCheckboxes'
--- FIXME: Should this built on something in Generalized?
 inputCheckbox
-  :: forall x error input m f. (Monad m, FormInput input, FormError error, ErrorInputType error ~ input, Applicative f)
+  :: forall x error input m f. (Monad m, FormError error, ErrorInputType error ~ input, Applicative f)
   => Bool -- ^ initially checked
   -> Form m input error (HtmlT f ()) Bool
 inputCheckbox initiallyChecked =
@@ -198,10 +197,7 @@ inputCheckbox initiallyChecked =
     case v of
       Default -> mkCheckbox i initiallyChecked
       Missing -> mkCheckbox i False -- checkboxes only appear in the submitted data when checked
-      (Found input) ->
-        case getInputString input of
-          (Right _) -> mkCheckbox i True
-          (Left (e :: error)) -> mkCheckbox i False
+      Found input -> mkCheckbox i True
   where
     mkCheckbox i checked =
       let checkbox =
