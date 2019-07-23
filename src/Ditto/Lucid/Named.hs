@@ -26,7 +26,7 @@ inputText
   -> String
   -> text
   -> Form m input err (HtmlT f ()) text
-inputText getInput name initialValue = G.input getInput inputField initialValue name
+inputText getInput name initialValue = G.input name getInput inputField initialValue
   where
   inputField i a = input_ [type_ "text", id_ (toPathPiece i), name_ (toPathPiece i), value_ (toPathPiece a)]
 
@@ -36,7 +36,7 @@ inputPassword
   -> String
   -> text
   -> Form m input err (HtmlT f ()) text
-inputPassword getInput name initialValue = G.input getInput inputField initialValue name
+inputPassword getInput name initialValue = G.input name getInput inputField initialValue
   where
   inputField i a = input_ [type_ "password", id_ (toPathPiece i), name_ (toPathPiece i), value_ (toPathPiece a)]
 
@@ -46,7 +46,7 @@ inputSubmit
   -> String
   -> text
   -> Form m input err (HtmlT f ()) (Maybe text)
-inputSubmit getInput name initialValue = G.inputMaybe getInput inputField initialValue name
+inputSubmit getInput name initialValue = G.inputMaybe name getInput inputField initialValue
   where
   inputField i a = input_ [type_ "submit", id_ (toPathPiece i), name_ (toPathPiece i), value_ (toPathPiece a)]
 
@@ -55,7 +55,7 @@ inputReset
   => String
   -> text
   -> Form m input err (HtmlT f ()) ()
-inputReset name lbl = G.inputNoData inputField lbl name
+inputReset name lbl = G.inputNoData name inputField lbl
   where
   inputField i a = input_ [type_ "submit", id_ (toPathPiece i), name_ (toPathPiece i), value_ (toPathPiece a)]
 
@@ -65,7 +65,7 @@ inputHidden
   -> String
   -> text
   -> Form m input err (HtmlT f ()) text
-inputHidden getInput name initialValue = G.input getInput inputField initialValue name
+inputHidden getInput name initialValue = G.input name getInput inputField initialValue
   where
   inputField i a = input_ [type_ "hidden", id_ (toPathPiece i), name_ (toPathPiece i), value_ (toPathPiece a)]
 
@@ -74,7 +74,7 @@ inputButton
   => String
   -> text
   -> Form m input err (HtmlT f ()) ()
-inputButton name label = G.inputNoData inputField label name
+inputButton name label = G.inputNoData name inputField label
   where
   inputField i a = input_ [type_ "button", id_ (toPathPiece i), name_ (toPathPiece i), value_ (toPathPiece a)]
 
@@ -86,7 +86,7 @@ textarea
   -> String
   -> text -- ^ initial text
   -> Form m input err (HtmlT f ()) text
-textarea getInput cols rows name initialValue = G.input getInput textareaView initialValue name
+textarea getInput cols rows name initialValue = G.input name getInput textareaView initialValue
   where
   textareaView i txt =
     textarea_
@@ -104,7 +104,7 @@ inputFile
   :: (Monad m, FormError err, FormInput input, ErrorInputType err ~ input, Applicative f)
   => String
   -> Form m input err (HtmlT f ()) (FileType input)
-inputFile name = G.inputFile fileView name
+inputFile name = G.inputFile name fileView
   where
   fileView i = input_ [type_ "file", id_ (toPathPiece i), name_ (toPathPiece i)]
 
@@ -116,7 +116,7 @@ buttonSubmit
   -> text
   -> children
   -> Form m input err (HtmlT f ()) (Maybe text)
-buttonSubmit getInput name text c = G.inputMaybe getInput inputField text name
+buttonSubmit getInput name text c = G.inputMaybe name getInput inputField text
   where
   inputField i a = button_ [type_ "submit", id_ (toPathPiece i), name_ (toPathPiece i), value_ (toPathPiece a)] $ toHtml c
 
@@ -128,7 +128,7 @@ buttonReset
   => String
   -> HtmlT f ()
   -> Form m input err (HtmlT f ()) ()
-buttonReset name c = G.inputNoData inputField Nothing name
+buttonReset name c = G.inputNoData name inputField Nothing
   where
   inputField i a = button_ [type_ "reset", id_ (toPathPiece i), name_ (toPathPiece i)] c
 
@@ -140,7 +140,7 @@ button
   => String
   -> HtmlT f ()
   -> Form m input err (HtmlT f ()) ()
-button name c = G.inputNoData inputField Nothing name
+button name c = G.inputNoData name inputField Nothing
   where
   inputField i a = button_ [type_ "button", id_ (toPathPiece i), name_ (toPathPiece i)] c
 
@@ -154,7 +154,7 @@ label
   => HtmlT f ()
   -> String
   -> Form m input err (HtmlT f ()) ()
-label c name = G.label mkLabel name
+label c name = G.label name mkLabel
   where
     mkLabel i = label_ [for_ (toPathPiece i)] c
 
@@ -167,7 +167,7 @@ inputInt
   -> String
   -> Int
   -> Form m input err (HtmlT f ()) Int
-inputInt getInput name initialValue = G.input getInput inputField initialValue name
+inputInt getInput name initialValue = G.input name getInput inputField initialValue
   where
   inputField i a =
     input_
@@ -183,7 +183,7 @@ inputDouble
   -> String
   -> Double
   -> Form m input err (HtmlT f ()) Double
-inputDouble getInput name initialValue = G.input getInput inputField initialValue name
+inputDouble getInput name initialValue = G.input name getInput inputField initialValue
   where
   inputField i a = input_ [type_ "number", step_ "any", id_ (toPathPiece i), name_ (toPathPiece i), value_ (T.pack $ show a)]
 
@@ -195,7 +195,7 @@ inputDouble getInput name initialValue = G.input getInput inputField initialValu
 inputCheckbox
   :: forall x err input m f. (Monad m, FormError err, ErrorInputType err ~ input, Applicative f)
   => Bool -- ^ initially checked
-  -> String -- ^ name
+  -> String -- ^
   -> Form m input err (HtmlT f ()) Bool
 inputCheckbox initiallyChecked name =
   Form $ do
@@ -230,7 +230,7 @@ inputCheckboxes
   -> [(a, lbl)] -- ^ value, label, initially checked
   -> (a -> Bool) -- ^ function which indicates if a value should be checked initially
   -> Form m input err (HtmlT f ()) [a]
-inputCheckboxes name choices isChecked = G.inputMulti choices mkCheckboxes isChecked name
+inputCheckboxes name choices isChecked = G.inputMulti name choices mkCheckboxes isChecked
   where
   mkCheckboxes nm choices' = foldTraverse_ (mkCheckbox nm) choices'
   mkCheckbox nm (i, val, lbl, checked) =
@@ -249,7 +249,7 @@ inputRadio
   -> (a -> Bool) -- ^ isDefault
   -> Form m input err (HtmlT f ()) a
 inputRadio name choices isDefault =
-  G.inputChoice isDefault choices mkRadios name
+  G.inputChoice name isDefault choices mkRadios
   where
   mkRadios nm choices' = foldTraverse_ (mkRadio nm) choices'
   mkRadio nm (i, val, lbl, checked) =
@@ -269,7 +269,7 @@ select
   -> [(a, Html ())] -- ^ value, label
   -> (a -> Bool) -- ^ isDefault, must match *exactly one* element in the list of choices
   -> Form m input err (HtmlT f ()) a
-select name choices isDefault = G.inputChoice isDefault choices mkSelect name
+select name choices isDefault = G.inputChoice name isDefault choices mkSelect
   where
   mkSelect :: (ToHtml lbl, Monad f) => FormId -> [(a, Int, lbl, Bool)] -> HtmlT f ()
   mkSelect nm choices' =
@@ -292,7 +292,7 @@ selectMultiple
   -> [(a, Html ())] -- ^ value, label, initially checked
   -> (a -> Bool) -- ^ isSelected initially
   -> Form m input err (HtmlT f ()) [a]
-selectMultiple name choices isSelected = G.inputMulti choices mkSelect isSelected name
+selectMultiple name choices isSelected = G.inputMulti name choices mkSelect isSelected
   where
   mkSelect :: (ToHtml lbl, Monad f) => FormId -> [(a, Int, lbl, Bool)] -> HtmlT f ()
   mkSelect nm choices' =
