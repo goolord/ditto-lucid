@@ -5,17 +5,14 @@
 module Ditto.Lucid.Named where
 
 import Data.Foldable (traverse_, fold)
-import Data.Monoid ((<>), mconcat, mempty)
-import Data.Text (Text)
 import Ditto.Backend
 import Ditto.Core
+import Ditto.Lucid (encodeFormId)
 import Ditto.Generalized.Named as G
-import Ditto.Lucid
 import Ditto.Result (FormId, Result (Ok), unitRange)
 import Lucid
 import Web.PathPieces
 import qualified Data.Text as T
-import qualified Text.Read
 
 foldTraverse_ :: (Foldable t, Applicative f, Monoid (f b)) => (a -> t (f b)) -> t a -> f ()
 foldTraverse_ f = traverse_ (fold . f)
@@ -28,7 +25,7 @@ inputText
   -> Form m input err (HtmlT f ()) text
 inputText getInput name initialValue = G.input name getInput inputField initialValue
   where
-  inputField i a = input_ [type_ "text", id_ (toPathPiece i), name_ (toPathPiece i), value_ (toPathPiece a)]
+  inputField i a = input_ [type_ "text", id_ (encodeFormId i), name_ (encodeFormId i), value_ (toPathPiece a)]
 
 inputPassword
   :: (Monad m, FormError err, PathPiece text, Applicative f)
@@ -38,7 +35,7 @@ inputPassword
   -> Form m input err (HtmlT f ()) text
 inputPassword getInput name initialValue = G.input name getInput inputField initialValue
   where
-  inputField i a = input_ [type_ "password", id_ (toPathPiece i), name_ (toPathPiece i), value_ (toPathPiece a)]
+  inputField i a = input_ [type_ "password", id_ (encodeFormId i), name_ (encodeFormId i), value_ (toPathPiece a)]
 
 inputSubmit
   :: (Monad m, FormError err, PathPiece text, Applicative f)
@@ -46,18 +43,18 @@ inputSubmit
   -> String
   -> text
   -> Form m input err (HtmlT f ()) (Maybe text)
-inputSubmit getInput name initialValue = G.inputMaybe name getInput inputField initialValue
+inputSubmit getInput name initialValue = G.inputMaybe name getInput inputField (Just initialValue)
   where
-  inputField i a = input_ [type_ "submit", id_ (toPathPiece i), name_ (toPathPiece i), value_ (toPathPiece a)]
+  inputField i a = input_ [type_ "submit", id_ (encodeFormId i), name_ (encodeFormId i), value_ (toPathPiece a)]
 
 inputReset
   :: (Monad m, FormError err, PathPiece text, Applicative f)
   => String
   -> text
   -> Form m input err (HtmlT f ()) ()
-inputReset name lbl = G.inputNoData name inputField lbl
+inputReset name lbl = G.inputNoData name inputField
   where
-  inputField i a = input_ [type_ "submit", id_ (toPathPiece i), name_ (toPathPiece i), value_ (toPathPiece a)]
+  inputField i = input_ [type_ "submit", id_ (encodeFormId i), name_ (encodeFormId i), value_ (toPathPiece lbl)]
 
 inputHidden
   :: (Monad m, FormError err, PathPiece text, Applicative f)
@@ -67,16 +64,16 @@ inputHidden
   -> Form m input err (HtmlT f ()) text
 inputHidden getInput name initialValue = G.input name getInput inputField initialValue
   where
-  inputField i a = input_ [type_ "hidden", id_ (toPathPiece i), name_ (toPathPiece i), value_ (toPathPiece a)]
+  inputField i a = input_ [type_ "hidden", id_ (encodeFormId i), name_ (encodeFormId i), value_ (toPathPiece a)]
 
 inputButton
   :: (Monad m, FormError err, PathPiece text, Applicative f)
   => String
   -> text
   -> Form m input err (HtmlT f ()) ()
-inputButton name label = G.inputNoData name inputField label
+inputButton name lbl = G.inputNoData name inputField
   where
-  inputField i a = input_ [type_ "button", id_ (toPathPiece i), name_ (toPathPiece i), value_ (toPathPiece a)]
+  inputField i = input_ [type_ "button", id_ (encodeFormId i), name_ (encodeFormId i), value_ (toPathPiece lbl)]
 
 textarea
   :: (Monad m, FormError err, ToHtml text, Monad f)
@@ -92,8 +89,8 @@ textarea getInput cols rows name initialValue = G.input name getInput textareaVi
     textarea_
       [ rows_ (toPathPiece rows)
       , cols_ (toPathPiece cols)
-      , id_ (toPathPiece i)
-      , name_ (toPathPiece i)
+      , id_ (encodeFormId i)
+      , name_ (encodeFormId i)
       ] $
       toHtml txt
 
@@ -106,7 +103,7 @@ inputFile
   -> Form m input err (HtmlT f ()) (FileType input)
 inputFile name = G.inputFile name fileView
   where
-  fileView i = input_ [type_ "file", id_ (toPathPiece i), name_ (toPathPiece i)]
+  fileView i = input_ [type_ "file", id_ (encodeFormId i), name_ (encodeFormId i)]
 
 -- | Create a @\<button type=\"submit\"\>@ element
 buttonSubmit
@@ -116,9 +113,9 @@ buttonSubmit
   -> text
   -> children
   -> Form m input err (HtmlT f ()) (Maybe text)
-buttonSubmit getInput name text c = G.inputMaybe name getInput inputField text
+buttonSubmit getInput name text c = G.inputMaybe name getInput inputField (Just text)
   where
-  inputField i a = button_ [type_ "submit", id_ (toPathPiece i), name_ (toPathPiece i), value_ (toPathPiece a)] $ toHtml c
+  inputField i a = button_ [type_ "submit", id_ (encodeFormId i), name_ (encodeFormId i), value_ (toPathPiece a)] $ toHtml c
 
 -- | create a  @\<button type=\"reset\"\>\<\/button\>@ element
 --
@@ -128,9 +125,9 @@ buttonReset
   => String
   -> HtmlT f ()
   -> Form m input err (HtmlT f ()) ()
-buttonReset name c = G.inputNoData name inputField Nothing
+buttonReset name c = G.inputNoData name inputField
   where
-  inputField i a = button_ [type_ "reset", id_ (toPathPiece i), name_ (toPathPiece i)] c
+  inputField i = button_ [type_ "reset", id_ (encodeFormId i), name_ (encodeFormId i)] c
 
 -- | create a  @\<button type=\"button\"\>\<\/button\>@ element
 --
@@ -140,9 +137,9 @@ button
   => String
   -> HtmlT f ()
   -> Form m input err (HtmlT f ()) ()
-button name c = G.inputNoData name inputField Nothing
+button name c = G.inputNoData name inputField
   where
-  inputField i a = button_ [type_ "button", id_ (toPathPiece i), name_ (toPathPiece i)] c
+  inputField i = button_ [type_ "button", id_ (encodeFormId i), name_ (encodeFormId i)] c
 
 -- | create a @\<label\>@ element.
 --
@@ -156,7 +153,7 @@ label
   -> Form m input err (HtmlT f ()) ()
 label c name = G.label name mkLabel
   where
-    mkLabel i = label_ [for_ (toPathPiece i)] c
+  mkLabel i = label_ [for_ (encodeFormId i)] c
 
 arbitraryHtml :: Monad m => view -> Form m input err view ()
 arbitraryHtml = view
@@ -172,8 +169,8 @@ inputInt getInput name initialValue = G.input name getInput inputField initialVa
   inputField i a =
     input_
       [ type_ "number"
-      , id_ (toPathPiece i)
-      , name_ (toPathPiece i)
+      , id_ (encodeFormId i)
+      , name_ (encodeFormId i)
       , value_ (toPathPiece a)
       ]
 
@@ -185,7 +182,7 @@ inputDouble
   -> Form m input err (HtmlT f ()) Double
 inputDouble getInput name initialValue = G.input name getInput inputField initialValue
   where
-  inputField i a = input_ [type_ "number", step_ "any", id_ (toPathPiece i), name_ (toPathPiece i), value_ (T.pack $ show a)]
+  inputField i a = input_ [type_ "number", step_ "any", id_ (encodeFormId i), name_ (encodeFormId i), value_ (T.pack $ show a)]
 
 -- | Create a single @\<input type=\"checkbox\"\>@ element
 --
@@ -193,7 +190,7 @@ inputDouble getInput name initialValue = G.input name getInput inputField initia
 --
 -- see also 'inputCheckboxes'
 inputCheckbox
-  :: forall x err input m f. (Monad m, FormError err, ErrorInputType err ~ input, Applicative f)
+  :: forall err input m f. (Monad m, FormError err, ErrorInputType err ~ input, Applicative f)
   => Bool -- ^ initially checked
   -> String -- ^
   -> Form m input err (HtmlT f ()) Bool
@@ -210,7 +207,7 @@ inputCheckbox initiallyChecked name =
     let checkbox =
           input_ $
             (if checked then (:) checked_ else id)
-              [type_ "checkbox", id_ (toPathPiece i), name_ (toPathPiece i), value_ (toPathPiece i)]
+              [type_ "checkbox", id_ (encodeFormId i), name_ (encodeFormId i), value_ (encodeFormId i)]
      in pure
           ( View $ const $ checkbox
           , pure $
@@ -236,9 +233,9 @@ inputCheckboxes name choices isChecked = G.inputMulti name choices mkCheckboxes 
   mkCheckbox nm (i, val, lbl, checked) =
     [ input_ $
         ( (if checked then (checked_ :) else id)
-          [type_ "checkbox", id_ (toPathPiece i), name_ (toPathPiece nm), value_ (toPathPiece val)]
+          [type_ "checkbox", id_ (encodeFormId i), name_ (encodeFormId nm), value_ (toPathPiece val)]
         )
-    , label_ [for_ (toPathPiece i)] $ toHtml lbl
+    , label_ [for_ (encodeFormId i)] $ toHtml lbl
     ]
 
 -- | Create a group of @\<input type=\"radio\"\>@ elements
@@ -255,8 +252,8 @@ inputRadio name choices isDefault =
   mkRadio nm (i, val, lbl, checked) =
     [ input_ $
         (if checked then (checked_ :) else id)
-          [type_ "radio", id_ (toPathPiece i), name_ (toPathPiece nm), value_ (toPathPiece val)]
-    , label_ [for_ (toPathPiece i)] $ toHtml lbl
+          [type_ "radio", id_ (encodeFormId i), name_ (encodeFormId nm), value_ (toPathPiece val)]
+    , label_ [for_ (encodeFormId i)] $ toHtml lbl
     , br_ []
     ]
 
@@ -273,7 +270,7 @@ select name choices isDefault = G.inputChoice name isDefault choices mkSelect
   where
   mkSelect :: (ToHtml lbl, Monad f) => FormId -> [(a, Int, lbl, Bool)] -> HtmlT f ()
   mkSelect nm choices' =
-    select_ [name_ (toPathPiece nm)] $
+    select_ [name_ (encodeFormId nm)] $
       traverse_ mkOption choices'
   mkOption :: (ToHtml lbl, Monad f) => (a, Int, lbl, Bool) -> HtmlT f ()
   mkOption (_, val, lbl, selected) =
@@ -296,7 +293,7 @@ selectMultiple name choices isSelected = G.inputMulti name choices mkSelect isSe
   where
   mkSelect :: (ToHtml lbl, Monad f) => FormId -> [(a, Int, lbl, Bool)] -> HtmlT f ()
   mkSelect nm choices' =
-    select_ [name_ (toPathPiece nm), multiple_ "multiple"] $
+    select_ [name_ (encodeFormId nm), multiple_ "multiple"] $
       traverse_ mkOption choices'
   mkOption :: (ToHtml lbl, Monad f) => (a, Int, lbl, Bool) -> HtmlT f ()
   mkOption (_, val, lbl, selected) =

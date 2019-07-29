@@ -2,23 +2,20 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
 
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+
 module Ditto.Lucid where
 
 import Data.Foldable (traverse_)
-import Data.Monoid ((<>), mconcat, mempty)
 import Data.Text (Text)
 import Lucid
-import Ditto.Backend
 import Ditto.Core
 import Ditto.Generalized as G
-import Ditto.Result (FormId, Result (Ok), unitRange)
-import Web.PathPieces
+import Ditto.Result (FormId)
 import qualified Data.Text as T
-import qualified Text.Read
 
-instance PathPiece FormId where
-  toPathPiece fid = T.pack (show fid)
-  fromPathPiece fidT = Nothing
+encodeFormId :: FormId -> Text
+encodeFormId = T.pack . show
 
 -- | create @\<form action=action method=\"GET\" enctype=\"application/xxx-form-urlencoded\"\>@
 formGenGET
