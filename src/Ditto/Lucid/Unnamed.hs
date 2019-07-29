@@ -24,7 +24,7 @@ inputText
   -> Form m input error (HtmlT f ()) text
 inputText getInput initialValue = G.input getInput inputField initialValue
   where
-    inputField i a = input_ [type_ "text", id_ (encodeFormId i), name_ (encodeFormId i), value_ (toPathPiece a)]
+  inputField i a = input_ [type_ "text", id_ (encodeFormId i), name_ (encodeFormId i), value_ (toPathPiece a)]
 
 inputPassword
   :: (Monad m, FormError error, PathPiece text, Applicative f)
