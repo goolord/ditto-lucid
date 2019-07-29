@@ -26,6 +26,16 @@ inputText getInput initialValue = G.input getInput inputField initialValue
   where
   inputField i a = input_ [type_ "text", id_ (encodeFormId i), name_ (encodeFormId i), value_ (toPathPiece a)]
 
+inputTextMReq
+  :: (Monad m, FormError err, PathPiece text, Applicative f)
+  => (input -> Either err text)
+  -> Maybe text
+  -> Form m input err (HtmlT f ()) text
+inputTextMReq getInput initialValue = G.inputMaybeReq getInput inputField initialValue
+  where
+  inputField i Nothing = input_ [type_ "text", id_ (encodeFormId i), name_ (encodeFormId i), required_ "required"]
+  inputField i (Just a) = input_ [type_ "text", id_ (encodeFormId i), name_ (encodeFormId i), value_ (toPathPiece a), required_ "required"]
+
 inputPassword
   :: (Monad m, FormError error, PathPiece text, Applicative f)
   => (input -> Either error text)
