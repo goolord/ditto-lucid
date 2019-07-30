@@ -83,22 +83,15 @@ childErrorList = G.childErrors mkErrors
   mkError :: Monad f => ToHtml a => a -> HtmlT f ()
   mkError e = li_ [] $ toHtml e
 
--- | create a @\<ul\>@ which contains all the errors related to the 'Form'.
---
--- Includes errors from child forms.
+-- | create a sibling element to the formlet which includes its error message
 --
 -- The @<\ul\>@ will have the attribute @class=\"ditto-error-list\"@.
 withErrors
   :: (Monad m, ToHtml error, Monad f)
-  => [Attribute]
-  -> ([error] -> HtmlT f ())
+  => (HtmlT f () -> [error] -> HtmlT f ())
   -> Form m input error (HtmlT f ()) a
   -> Form m input error (HtmlT f ()) a
-withErrors attrs renderError form = G.withErrors mkErrors form
-  where
-  mkErrors formlet errs = 
-    formlet `with` attrs
-    <* renderError errs
+withErrors renderError form = G.withErrors renderError form
 
 -- | create a @\<br\>@ tag.
 br :: (Monad m, Applicative f) => Form m input error (HtmlT f ()) ()
