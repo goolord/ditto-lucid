@@ -233,7 +233,7 @@ inputCheckbox initiallyChecked name =
 -- | Create a group of @\<input type=\"checkbox\"\>@ elements
 --
 inputCheckboxes
-  :: (Functor m, Monad m, FormError input err, FormInput input, ToHtml lbl, Monad f)
+  :: (Functor m, Monad m, FormError input err, FormInput input, ToHtml lbl, Monad f, PathPiece a)
   => String
   -> [(a, lbl)] -- ^ value, label, initially checked
   -> (a -> Bool) -- ^ function which indicates if a value should be checked initially
@@ -241,7 +241,7 @@ inputCheckboxes
 inputCheckboxes name choices isChecked = G.inputMulti name choices mkCheckboxes isChecked
   where
   mkCheckboxes nm choices' = foldTraverse_ (mkCheckbox nm) choices'
-  mkCheckbox nm (i, val, lbl, checked) =
+  mkCheckbox nm (Choice i _index lbl checked val) =
     [ input_ $
         ( (if checked then (checked_ :) else id)
           [type_ "checkbox", id_ (encodeFormId i), name_ (encodeFormId nm), value_ (toPathPiece val)]
@@ -251,7 +251,7 @@ inputCheckboxes name choices isChecked = G.inputMulti name choices mkCheckboxes 
 
 -- | Create a group of @\<input type=\"radio\"\>@ elements
 inputRadio
-  :: (Functor m, Monad m, FormError input err, FormInput input, Monad f)
+  :: (Functor m, Monad m, FormError input err, FormInput input, Monad f, PathPiece a)
   => String
   -> [(a, Html ())] -- ^ value, label, initially checked
   -> (a -> Bool) -- ^ isDefault
@@ -260,7 +260,7 @@ inputRadio name choices isDefault =
   G.inputChoice name isDefault choices mkRadios
   where
   mkRadios nm choices' = foldTraverse_ (mkRadio nm) choices'
-  mkRadio nm (i, val, lbl, checked) =
+  mkRadio nm (Choice i _index lbl checked val) =
     [ input_ $
         (if checked then (checked_ :) else id)
           [type_ "radio", id_ (encodeFormId i), name_ (encodeFormId nm), value_ (toPathPiece val)]
@@ -272,19 +272,19 @@ inputRadio name choices isDefault =
 --
 -- see also: 'selectMultiple'
 select
-  :: (Functor m, Monad m, FormError input err, FormInput input, Monad f)
+  :: (Functor m, Monad m, FormError input err, FormInput input, Monad f, PathPiece a)
   => String
   -> [(a, Html ())] -- ^ value, label
   -> (a -> Bool) -- ^ isDefault, must match *exactly one* element in the list of choices
   -> Form m input err (HtmlT f ()) a
 select name choices isDefault = G.inputChoice name isDefault choices mkSelect
   where
-  mkSelect :: (ToHtml lbl, Monad f) => FormId -> [(a, Int, lbl, Bool)] -> HtmlT f ()
+  mkSelect :: (ToHtml lbl, Monad f, PathPiece a) => FormId -> [Choice lbl a] -> HtmlT f ()
   mkSelect nm choices' =
     select_ [name_ (encodeFormId nm)] $
       traverse_ mkOption choices'
-  mkOption :: (ToHtml lbl, Monad f) => (a, Int, lbl, Bool) -> HtmlT f ()
-  mkOption (_, val, lbl, selected) =
+  mkOption :: (ToHtml lbl, Monad f, PathPiece a) => Choice lbl a -> HtmlT f ()
+  mkOption (Choice _ _index lbl selected val) =
     option_
       ( (if selected then ((:) (selected_ "selected")) else id)
         [value_ (toPathPiece val)]
@@ -295,19 +295,19 @@ select name choices isDefault = G.inputChoice name isDefault choices mkSelect
 --
 -- This creates a @\<select\>@ element which allows more than one item to be selected.
 selectMultiple
-  :: (Functor m, Monad m, FormError input err, FormInput input, Monad f)
+  :: (Functor m, Monad m, FormError input err, FormInput input, Monad f, PathPiece a)
   => String
   -> [(a, Html ())] -- ^ value, label, initially checked
   -> (a -> Bool) -- ^ isSelected initially
   -> Form m input err (HtmlT f ()) [a]
 selectMultiple name choices isSelected = G.inputMulti name choices mkSelect isSelected
   where
-  mkSelect :: (ToHtml lbl, Monad f) => FormId -> [(a, Int, lbl, Bool)] -> HtmlT f ()
+  mkSelect :: (ToHtml lbl, Monad f, PathPiece a) => FormId -> [Choice lbl a] -> HtmlT f ()
   mkSelect nm choices' =
     select_ [name_ (encodeFormId nm), multiple_ "multiple"] $
       traverse_ mkOption choices'
-  mkOption :: (ToHtml lbl, Monad f) => (a, Int, lbl, Bool) -> HtmlT f ()
-  mkOption (_, val, lbl, selected) =
+  mkOption :: (ToHtml lbl, Monad f, PathPiece a) => Choice lbl a -> HtmlT f ()
+  mkOption (Choice _ _index lbl selected val) =
     option_
       ( (if selected then ((:) (selected_ "selected")) else id)
         [value_ (toPathPiece val)]
