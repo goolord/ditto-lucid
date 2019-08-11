@@ -8,14 +8,9 @@ module Ditto.Lucid where
 
 import Data.Foldable (traverse_)
 import Data.Text (Text)
-import Lucid
 import Ditto.Core
 import Ditto.Generalized.Unnamed as G
-import Ditto.Types (FormId)
-import qualified Data.Text as T
-
-encodeFormId :: FormId -> Text
-encodeFormId = T.pack . show
+import Lucid
 
 -- | create @\<form action=action method=\"GET\" enctype=\"application/xxx-form-urlencoded\"\>@
 formGenGET

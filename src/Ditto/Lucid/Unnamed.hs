@@ -8,7 +8,6 @@ import Data.Foldable (traverse_, fold)
 import Ditto.Backend
 import Ditto.Core
 import Ditto.Generalized.Unnamed as G
-import Ditto.Lucid
 import Ditto.Types
 import Lucid
 import Web.PathPieces

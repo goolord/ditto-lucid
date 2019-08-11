@@ -9,7 +9,6 @@ import Data.Text (Text)
 import Ditto.Backend
 import Ditto.Core
 import Ditto.Generalized.Named as G
-import Ditto.Lucid (encodeFormId)
 import Ditto.Types
 import Lucid
 import Web.PathPieces
