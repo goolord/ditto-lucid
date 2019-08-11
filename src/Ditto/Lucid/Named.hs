@@ -5,11 +5,12 @@
 module Ditto.Lucid.Named where
 
 import Data.Foldable (traverse_, fold)
+import Data.Text (Text)
 import Ditto.Backend
 import Ditto.Core
-import Ditto.Lucid (encodeFormId)
 import Ditto.Generalized.Named as G
-import Ditto.Result (FormId, Result (Ok), unitRange)
+import Ditto.Lucid (encodeFormId)
+import Ditto.Types
 import Lucid
 import Web.PathPieces
 import qualified Data.Text as T
@@ -20,28 +21,17 @@ foldTraverse_ f = traverse_ (fold . f)
 inputText
   :: (Monad m, FormError input err, PathPiece text, Applicative f)
   => (input -> Either err text)
-  -> String
+  -> Text
   -> text
   -> Form m input err (HtmlT f ()) text
 inputText getInput name initialValue = G.input name getInput inputField initialValue
   where
   inputField i a = input_ [type_ "text", id_ (encodeFormId i), name_ (encodeFormId i), value_ (toPathPiece a)]
 
-inputTextMReq
-  :: (Monad m, FormError input err, PathPiece text, Applicative f)
-  => (input -> Either err text)
-  -> String
-  -> Maybe text
-  -> Form m input err (HtmlT f ()) text
-inputTextMReq getInput name initialValue = G.inputMaybeReq name getInput inputField initialValue
-  where
-  inputField i Nothing = input_ [type_ "text", id_ (encodeFormId i), name_ (encodeFormId i), required_ "required"]
-  inputField i (Just a) = input_ [type_ "text", id_ (encodeFormId i), name_ (encodeFormId i), value_ (toPathPiece a), required_ "required"]
-
 inputPassword
   :: (Monad m, FormError input err, PathPiece text, Applicative f)
   => (input -> Either err text)
-  -> String
+  -> Text
   -> text
   -> Form m input err (HtmlT f ()) text
 inputPassword getInput name initialValue = G.input name getInput inputField initialValue
@@ -51,7 +41,7 @@ inputPassword getInput name initialValue = G.input name getInput inputField init
 inputSubmit
   :: (Monad m, FormError input err, PathPiece text, Applicative f)
   => (input -> Either err text)
-  -> String
+  -> Text
   -> text
   -> Form m input err (HtmlT f ()) (Maybe text)
 inputSubmit getInput name initialValue = G.inputMaybe name getInput inputField (Just initialValue)
@@ -60,7 +50,7 @@ inputSubmit getInput name initialValue = G.inputMaybe name getInput inputField (
 
 inputReset
   :: (Monad m, FormError input err, PathPiece text, Applicative f)
-  => String
+  => Text
   -> text
   -> Form m input err (HtmlT f ()) ()
 inputReset name lbl = G.inputNoData name inputField
@@ -70,7 +60,7 @@ inputReset name lbl = G.inputNoData name inputField
 inputHidden
   :: (Monad m, FormError input err, PathPiece text, Applicative f)
   => (input -> Either err text)
-  -> String
+  -> Text
   -> text
   -> Form m input err (HtmlT f ()) text
 inputHidden getInput name initialValue = G.input name getInput inputField initialValue
@@ -79,7 +69,7 @@ inputHidden getInput name initialValue = G.input name getInput inputField initia
 
 inputButton
   :: (Monad m, FormError input err, PathPiece text, Applicative f)
-  => String
+  => Text
   -> text
   -> Form m input err (HtmlT f ()) ()
 inputButton name lbl = G.inputNoData name inputField
@@ -91,7 +81,7 @@ textarea
   => (input -> Either err text)
   -> Int -- ^ cols
   -> Int -- ^ rows
-  -> String
+  -> Text
   -> text -- ^ initial text
   -> Form m input err (HtmlT f ()) text
 textarea getInput cols rows name initialValue = G.input name getInput textareaView initialValue
@@ -110,7 +100,7 @@ textarea getInput cols rows name initialValue = G.input name getInput textareaVi
 -- This control may succeed even if the user does not actually select a file to upload. In that case the uploaded name will likely be \"\" and the file contents will be empty as well.
 inputFile
   :: (Monad m, FormError input err, FormInput input, Applicative f)
-  => String
+  => Text
   -> Form m input err (HtmlT f ()) (FileType input)
 inputFile name = G.inputFile name fileView
   where
@@ -120,7 +110,7 @@ inputFile name = G.inputFile name fileView
 buttonSubmit
   :: (Monad m, FormError input err, PathPiece text, ToHtml children, Monad f)
   => (input -> Either err text)
-  -> String
+  -> Text
   -> text
   -> children
   -> Form m input err (HtmlT f ()) (Maybe text)
@@ -133,7 +123,7 @@ buttonSubmit getInput name text c = G.inputMaybe name getInput inputField (Just 
 -- This element does not add any data to the form data set.
 buttonReset
   :: (Monad m, FormError input err, Monad f)
-  => String
+  => Text
   -> HtmlT f ()
   -> Form m input err (HtmlT f ()) ()
 buttonReset name c = G.inputNoData name inputField
@@ -145,7 +135,7 @@ buttonReset name c = G.inputNoData name inputField
 -- This element does not add any data to the form data set.
 button
   :: (Monad m, FormError input err, Monad f)
-  => String
+  => Text
   -> HtmlT f ()
   -> Form m input err (HtmlT f ()) ()
 button name c = G.inputNoData name inputField
@@ -160,7 +150,7 @@ button name c = G.inputNoData name inputField
 label
   :: (Monad m, Monad f)
   => HtmlT f ()
-  -> String
+  -> Text
   -> Form m input err (HtmlT f ()) ()
 label c name = G.label name mkLabel
   where
@@ -172,7 +162,7 @@ arbitraryHtml = view
 inputInt
   :: (Monad m, FormError input err, Applicative f)
   => (input -> Either err Int)
-  -> String
+  -> Text
   -> Int
   -> Form m input err (HtmlT f ()) Int
 inputInt getInput name initialValue = G.input name getInput inputField initialValue
@@ -188,7 +178,7 @@ inputInt getInput name initialValue = G.input name getInput inputField initialVa
 inputDouble
   :: (Monad m, FormError input err, Applicative f)
   => (input -> Either err Double)
-  -> String
+  -> Text
   -> Double
   -> Form m input err (HtmlT f ()) Double
 inputDouble getInput name initialValue = G.input name getInput inputField initialValue
@@ -203,10 +193,10 @@ inputDouble getInput name initialValue = G.input name getInput inputField initia
 inputCheckbox
   :: forall err input m f. (Monad m, FormError input err, Applicative f)
   => Bool -- ^ initially checked
-  -> String -- ^
+  -> Text -- ^
   -> Form m input err (HtmlT f ()) Bool
 inputCheckbox initiallyChecked name =
-  Form $ do
+  Form (successDecode True) initiallyChecked $ do
     i <- getNamedFormId name
     v <- getFormInput' i
     case v of
@@ -234,7 +224,7 @@ inputCheckbox initiallyChecked name =
 --
 inputCheckboxes
   :: (Functor m, Monad m, FormError input err, FormInput input, ToHtml lbl, Monad f, PathPiece a, Eq a)
-  => String
+  => Text
   -> [(a, lbl)] -- ^ value, label, initially checked
   -> (input -> Either err [a])
   -> (a -> Bool) -- ^ function which indicates if a value should be checked initially
@@ -253,7 +243,7 @@ inputCheckboxes name choices fromInput isChecked = G.inputMulti name choices fro
 -- | Create a group of @\<input type=\"radio\"\>@ elements
 inputRadio
   :: (Functor m, Monad m, FormError input err, FormInput input, Monad f, PathPiece a, Eq a)
-  => String
+  => Text
   -> [(a, Html ())] -- ^ value, label, initially checked
   -> (input -> Either err a)
   -> (a -> Bool) -- ^ isDefault
@@ -275,7 +265,7 @@ inputRadio name choices fromInput isDefault =
 -- see also: 'selectMultiple'
 select
   :: (Functor m, Monad m, FormError input err, FormInput input, Monad f, PathPiece a, Eq a)
-  => String
+  => Text
   -> [(a, Html ())] -- ^ value, label
   -> (input -> Either err a)
   -> (a -> Bool) -- ^ isDefault, must match *exactly one* element in the list of choices
@@ -299,7 +289,7 @@ select name choices fromInput isDefault = G.inputChoice name isDefault choices f
 -- This creates a @\<select\>@ element which allows more than one item to be selected.
 selectMultiple
   :: (Functor m, Monad m, FormError input err, FormInput input, Monad f, PathPiece a, Eq a)
-  => String
+  => Text
   -> [(a, Html ())] -- ^ value, label, initially checked
   -> (input -> Either err [a])
   -> (a -> Bool) -- ^ isSelected initially

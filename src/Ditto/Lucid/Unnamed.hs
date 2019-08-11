@@ -7,9 +7,9 @@ module Ditto.Lucid.Unnamed where
 import Data.Foldable (traverse_, fold)
 import Ditto.Backend
 import Ditto.Core
-import Ditto.Generalized as G
+import Ditto.Generalized.Unnamed as G
 import Ditto.Lucid
-import Ditto.Result (FormId, Result (Ok), unitRange)
+import Ditto.Types
 import Lucid
 import Web.PathPieces
 import qualified Data.Text as T
@@ -25,16 +25,6 @@ inputText
 inputText getInput initialValue = G.input getInput inputField initialValue
   where
   inputField i a = input_ [type_ "text", id_ (encodeFormId i), name_ (encodeFormId i), value_ (toPathPiece a)]
-
-inputTextMReq
-  :: (Monad m, FormError input err, PathPiece text, Applicative f)
-  => (input -> Either err text)
-  -> Maybe text
-  -> Form m input err (HtmlT f ()) text
-inputTextMReq getInput initialValue = G.inputMaybeReq getInput inputField initialValue
-  where
-  inputField i Nothing = input_ [type_ "text", id_ (encodeFormId i), name_ (encodeFormId i), required_ "required"]
-  inputField i (Just a) = input_ [type_ "text", id_ (encodeFormId i), name_ (encodeFormId i), value_ (toPathPiece a), required_ "required"]
 
 inputPassword
   :: (Monad m, FormError input err, PathPiece text, Applicative f)
@@ -155,7 +145,7 @@ label c = G.label mkLabel
 
 arbitraryHtml :: Monad m => view -> Form m input err view ()
 arbitraryHtml wrap =
-  Form $ do
+  Form (successDecode ()) () $ do
     id' <- getFormId
     pure
       ( View (const $ wrap)
@@ -201,7 +191,7 @@ inputCheckbox
   => Bool -- ^ initially checked
   -> Form m input err (HtmlT f ()) Bool
 inputCheckbox initiallyChecked =
-  Form $ do
+  Form (successDecode True) initiallyChecked $ do
     i <- getFormId
     v <- getFormInput' i
     case v of
