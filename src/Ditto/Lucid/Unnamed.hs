@@ -144,7 +144,7 @@ label c = G.label mkLabel
 
 arbitraryHtml :: Environment m input => view -> Form m input err view ()
 arbitraryHtml wrap =
-  Form (successDecode ()) () $ do
+  Form (successDecode ()) (pure ()) $ do
     id' <- getFormId
     pure
       ( View (const $ wrap)
@@ -190,7 +190,7 @@ inputCheckbox
   => Bool -- ^ initially checked
   -> Form m input err (HtmlT f ()) Bool
 inputCheckbox initiallyChecked =
-  Form (successDecode True) initiallyChecked $ do
+  Form (successDecode True) (pure initiallyChecked) $ do
     i <- getFormId
     v <- getFormInput' i
     case v of
@@ -236,7 +236,7 @@ inputCheckboxes choices fromInput isChecked =
 
 -- | Create a group of @\<input type=\"radio\"\>@ elements
 inputRadio
-  :: (Functor m, Environment m input, FormError input err, FormInput input, Monad f, PathPiece a, Eq a)
+  :: (Functor m, Environment m input, FormError input err, FormInput input, Monad f, PathPiece a, Eq a, Traversable m)
   => [(a, Html ())] -- ^ value, label, initially checked
   -> (input -> Either err a)
   -> (a -> Bool) -- ^ isDefault
@@ -257,7 +257,7 @@ inputRadio choices fromInput isDefault =
 --
 -- see also: 'selectMultiple'
 select
-  :: (Functor m, Environment m input, FormError input err, FormInput input, Monad f, PathPiece a, Eq a)
+  :: (Functor m, Environment m input, FormError input err, FormInput input, Monad f, PathPiece a, Eq a, Traversable m)
   => [(a, Html ())] -- ^ value, label
   -> (input -> Either err a)
   -> (a -> Bool) -- ^ isDefault, must match *exactly one* element in the list of choices

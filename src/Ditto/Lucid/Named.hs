@@ -195,7 +195,7 @@ inputCheckbox
   -> Text -- ^
   -> Form m input err (HtmlT f ()) Bool
 inputCheckbox initiallyChecked name =
-  Form (successDecode True) initiallyChecked $ do
+  Form (successDecode True) (pure initiallyChecked) $ do
     i <- getNamedFormId name
     v <- getFormInput' i
     case v of
@@ -241,7 +241,7 @@ inputCheckboxes name choices fromInput isChecked = G.inputMulti name choices fro
 
 -- | Create a group of @\<input type=\"radio\"\>@ elements
 inputRadio
-  :: (Functor m, Environment m input, FormError input err, FormInput input, Monad f, PathPiece a, Eq a)
+  :: (Functor m, Environment m input, FormError input err, FormInput input, Monad f, PathPiece a, Eq a, Traversable m)
   => Text
   -> [(a, Html ())] -- ^ value, label, initially checked
   -> (input -> Either err a)
@@ -263,7 +263,7 @@ inputRadio name choices fromInput isDefault =
 --
 -- see also: 'selectMultiple'
 select
-  :: (Functor m, Environment m input, FormError input err, FormInput input, Monad f, PathPiece a, Eq a)
+  :: (Functor m, Environment m input, FormError input err, FormInput input, Monad f, PathPiece a, Eq a, Traversable m)
   => Text
   -> [(a, Html ())] -- ^ value, label
   -> (input -> Either err a)
