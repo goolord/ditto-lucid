@@ -3,5 +3,5 @@ packages: ./
 source-repository-package 
   type: git 
   location: https://github.com/goolord/ditto
-  tag: 3f9793fe4ebe910a1bd94ff144cd43c9e77b0f23
+  tag: 1a3060fd41196f11e270efeb784b1d378f332c68
 
