@@ -5,6 +5,7 @@
 module Ditto.Lucid.Named where
 
 import Data.Foldable (traverse_, fold)
+import Data.List.NonEmpty
 import Data.Text (Text)
 import Ditto.Backend
 import Ditto.Core
@@ -243,7 +244,7 @@ inputCheckboxes name choices fromInput isChecked = G.inputMulti name choices fro
 inputRadio
   :: (Functor m, Environment m input, FormError input err, FormInput input, Monad f, PathPiece a, Eq a)
   => Text
-  -> [(a, Html ())] -- ^ value, label, initially checked
+  -> NonEmpty (a, Html ()) -- ^ value, label, initially checked
   -> (input -> Either err a)
   -> (a -> Bool) -- ^ isDefault
   -> Form m input err (HtmlT f ()) a
@@ -265,7 +266,7 @@ inputRadio name choices fromInput isDefault =
 select
   :: (Functor m, Environment m input, FormError input err, FormInput input, Monad f, PathPiece a, Eq a)
   => Text
-  -> [(a, Html ())] -- ^ value, label
+  -> NonEmpty (a, Html ()) -- ^ value, label
   -> (input -> Either err a)
   -> (a -> Bool) -- ^ isDefault, must match *exactly one* element in the list of choices
   -> Form m input err (HtmlT f ()) a

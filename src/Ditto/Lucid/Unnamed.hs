@@ -11,6 +11,7 @@ import Ditto.Generalized.Unnamed as G
 import Ditto.Types
 import Lucid
 import Web.PathPieces
+import Data.List.NonEmpty
 import qualified Data.Text as T
 
 foldTraverse_ :: (Foldable t, Applicative f, Monoid (f b)) => (a -> t (f b)) -> t a -> f ()
@@ -237,7 +238,7 @@ inputCheckboxes choices fromInput isChecked =
 -- | Create a group of @\<input type=\"radio\"\>@ elements
 inputRadio
   :: (Functor m, Environment m input, FormError input err, FormInput input, Monad f, PathPiece a, Eq a)
-  => [(a, Html ())] -- ^ value, label, initially checked
+  => NonEmpty (a, Html ()) -- ^ value, label, initially checked
   -> (input -> Either err a)
   -> (a -> Bool) -- ^ isDefault
   -> Form m input err (HtmlT f ()) a
@@ -258,7 +259,7 @@ inputRadio choices fromInput isDefault =
 -- see also: 'selectMultiple'
 select
   :: (Functor m, Environment m input, FormError input err, FormInput input, Monad f, PathPiece a, Eq a)
-  => [(a, Html ())] -- ^ value, label
+  => NonEmpty (a, Html ()) -- ^ value, label
   -> (input -> Either err a)
   -> (a -> Bool) -- ^ isDefault, must match *exactly one* element in the list of choices
   -> Form m input err (HtmlT f ()) a
