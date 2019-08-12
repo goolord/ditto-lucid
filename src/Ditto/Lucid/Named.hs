@@ -241,7 +241,7 @@ inputCheckboxes name choices fromInput isChecked = G.inputMulti name choices fro
 
 -- | Create a group of @\<input type=\"radio\"\>@ elements
 inputRadio
-  :: (Functor m, Environment m input, FormError input err, FormInput input, Monad f, PathPiece a, Eq a, Traversable m)
+  :: (Functor m, Environment m input, FormError input err, FormInput input, Monad f, PathPiece a, Eq a)
   => Text
   -> [(a, Html ())] -- ^ value, label, initially checked
   -> (input -> Either err a)
@@ -263,7 +263,7 @@ inputRadio name choices fromInput isDefault =
 --
 -- see also: 'selectMultiple'
 select
-  :: (Functor m, Environment m input, FormError input err, FormInput input, Monad f, PathPiece a, Eq a, Traversable m)
+  :: (Functor m, Environment m input, FormError input err, FormInput input, Monad f, PathPiece a, Eq a)
   => Text
   -> [(a, Html ())] -- ^ value, label
   -> (input -> Either err a)
