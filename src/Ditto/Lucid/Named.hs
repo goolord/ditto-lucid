@@ -28,6 +28,17 @@ inputText getInput name initialValue = G.input name getInput inputField initialV
   where
   inputField i a = input_ [type_ "text", id_ (encodeFormId i), name_ (encodeFormId i), value_ (toPathPiece a)]
 
+inputMaybeText
+  :: (Environment m input, FormError input err, PathPiece text, Applicative f)
+  => (input -> Either err text)
+  -> Text
+  -> Maybe text
+  -> Form m input err (HtmlT f ()) (Maybe text)
+inputMaybeText getInput name initialValue = G.inputMaybe name getInput inputField initialValue
+  where
+  inputField i a = let attrs = maybe [] (pure . value_ . toPathPiece) a in 
+    input_ $ type_ "text" : id_ (encodeFormId i) : name_ (encodeFormId i) : attrs
+
 inputPassword
   :: (Environment m input, FormError input err, PathPiece text, Applicative f)
   => (input -> Either err text)
