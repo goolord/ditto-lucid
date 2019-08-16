@@ -222,8 +222,7 @@ inputCheckbox initiallyChecked name =
               [type_ "checkbox", id_ (encodeFormId i), name_ (encodeFormId i), value_ (encodeFormId i)]
      in pure
           ( View $ const $ checkbox
-          , pure $
-            Ok
+          , Ok
               ( Proved
                 { pos = unitRange i
                 , unProved = if checked then True else False
