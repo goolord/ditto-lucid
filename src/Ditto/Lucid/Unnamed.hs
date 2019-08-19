@@ -101,7 +101,7 @@ textarea getInput cols rows initialValue = G.input getInput textareaView initial
 --
 -- This control may succeed even if the user does not actually select a file to upload. In that case the uploaded name will likely be \"\" and the file contents will be empty as well.
 inputFile
-  :: (Environment m input, FormError input err, FormInput input, Applicative f)
+  :: (Environment m input, FormError input err, FormInput input, Applicative f, ft ~ FileType input, Monoid ft)
   => Form m input err (HtmlT f ()) (FileType input)
 inputFile = G.inputFile fileView
   where
