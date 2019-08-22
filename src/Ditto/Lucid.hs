@@ -88,6 +88,16 @@ withErrors
   -> Form m input error (HtmlT f ()) a
 withErrors renderError form = G.withErrors renderError form
 
+-- | create a sibling element to the formlet which includes it and it's childrens' error message
+--
+-- The @<\ul\>@ will have the attribute @class=\"ditto-error-list\"@.
+withChildErrors
+  :: (Environment m input, ToHtml error, Monad f)
+  => (HtmlT f () -> [error] -> HtmlT f ())
+  -> Form m input error (HtmlT f ()) a
+  -> Form m input error (HtmlT f ()) a
+withChildErrors renderError form = G.withChildErrors renderError form
+
 -- | create a @\<br\>@ tag.
 br :: (Environment m input, Applicative f) => Form m input error (HtmlT f ()) ()
 br = view (br_ [])
