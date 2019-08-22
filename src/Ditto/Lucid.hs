@@ -8,14 +8,9 @@ module Ditto.Lucid where
 
 import Data.Foldable (traverse_)
 import Data.Text (Text)
-import Lucid
 import Ditto.Core
-import Ditto.Generalized as G
-import Ditto.Result (FormId)
-import qualified Data.Text as T
-
-encodeFormId :: FormId -> Text
-encodeFormId = T.pack . show
+import Ditto.Generalized.Unnamed as G
+import Lucid
 
 -- | create @\<form action=action method=\"GET\" enctype=\"application/xxx-form-urlencoded\"\>@
 formGenGET
@@ -47,7 +42,7 @@ formGenPOST action hidden children = do
 
 -- | add an attribute to the 'Html' for a form element.
 setAttr
-  :: (Monad m, Functor m, Applicative f)
+  :: (Environment m input, Functor m, Applicative f)
   => [Attribute]
   -> Form m input error (HtmlT f ()) a 
   -> Form m input error (HtmlT f ()) a
@@ -57,7 +52,7 @@ setAttr attr form = mapView (\x -> x `with` attr) form
 --
 -- The @<\ul\>@ will have the attribute @class=\"ditto-error-list\"@.
 errorList
-  :: (Monad m, ToHtml error, Monad f)
+  :: (Environment m input, ToHtml error, Monad f)
   => Form m input error (HtmlT f ()) ()
 errorList = G.errors mkErrors
   where
@@ -73,7 +68,7 @@ errorList = G.errors mkErrors
 --
 -- The @<\ul\>@ will have the attribute @class=\"ditto-error-list\"@.
 childErrorList
-  :: (Monad m, ToHtml error, Monad f)
+  :: (Environment m input, ToHtml error, Monad f)
   => Form m input error (HtmlT f ()) ()
 childErrorList = G.childErrors mkErrors
   where
@@ -87,41 +82,51 @@ childErrorList = G.childErrors mkErrors
 --
 -- The @<\ul\>@ will have the attribute @class=\"ditto-error-list\"@.
 withErrors
-  :: (Monad m, ToHtml error, Monad f)
+  :: (Environment m input, ToHtml error, Monad f)
   => (HtmlT f () -> [error] -> HtmlT f ())
   -> Form m input error (HtmlT f ()) a
   -> Form m input error (HtmlT f ()) a
 withErrors renderError form = G.withErrors renderError form
 
+-- | create a sibling element to the formlet which includes it and it's childrens' error message
+--
+-- The @<\ul\>@ will have the attribute @class=\"ditto-error-list\"@.
+withChildErrors
+  :: (Environment m input, ToHtml error, Monad f)
+  => (HtmlT f () -> [error] -> HtmlT f ())
+  -> Form m input error (HtmlT f ()) a
+  -> Form m input error (HtmlT f ()) a
+withChildErrors renderError form = G.withChildErrors renderError form
+
 -- | create a @\<br\>@ tag.
-br :: (Monad m, Applicative f) => Form m input error (HtmlT f ()) ()
+br :: (Environment m input, Applicative f) => Form m input error (HtmlT f ()) ()
 br = view (br_ [])
 
 -- | wrap a @\<fieldset class=\"ditto\"\>@ around a 'Form'
 --
 fieldset
-  :: (Monad m, Functor m, Applicative f)
+  :: (Environment m input, Functor m, Applicative f)
   => Form m input error (HtmlT f ()) a
   -> Form m input error (HtmlT f ()) a
 fieldset frm = mapView (fieldset_ [class_ "ditto"]) frm
 
 -- | wrap an @\<ol class=\"ditto\"\>@ around a 'Form'
 ol
-  :: (Monad m, Functor m, Applicative f)
+  :: (Environment m input, Functor m, Applicative f)
   => Form m input error (HtmlT f ()) a
   -> Form m input error (HtmlT f ()) a
 ol frm = mapView (ol_ [class_ "ditto"]) frm
 
 -- | wrap a @\<ul class=\"ditto\"\>@ around a 'Form'
 ul
-  :: (Monad m, Functor m, Applicative f)
+  :: (Environment m input, Functor m, Applicative f)
   => Form m input error (HtmlT f ()) a
   -> Form m input error (HtmlT f ()) a
 ul frm = mapView (ul_ [class_ "ditto"]) frm
 
 -- | wrap a @\<li class=\"ditto\"\>@ around a 'Form'
 li
-  :: (Monad m, Functor m, Applicative f)
+  :: (Environment m input, Functor m, Applicative f)
   => Form m input error (HtmlT f ()) a
   -> Form m input error (HtmlT f ()) a
 li frm = mapView (li_ [class_ "ditto"]) frm

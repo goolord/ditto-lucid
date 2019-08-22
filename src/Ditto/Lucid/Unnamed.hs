@@ -7,18 +7,18 @@ module Ditto.Lucid.Unnamed where
 import Data.Foldable (traverse_, fold)
 import Ditto.Backend
 import Ditto.Core
-import Ditto.Generalized as G
-import Ditto.Lucid
-import Ditto.Result (FormId, Result (Ok), unitRange)
+import Ditto.Generalized.Unnamed as G
+import Ditto.Types
 import Lucid
 import Web.PathPieces
+import Data.List.NonEmpty
 import qualified Data.Text as T
 
 foldTraverse_ :: (Foldable t, Applicative f, Monoid (f b)) => (a -> t (f b)) -> t a -> f ()
 foldTraverse_ f = traverse_ (fold . f)
 
 inputText
-  :: (Monad m, FormError input err, PathPiece text, Applicative f)
+  :: (Environment m input, FormError input err, PathPiece text, Applicative f)
   => (input -> Either err text)
   -> text
   -> Form m input err (HtmlT f ()) text
@@ -26,18 +26,18 @@ inputText getInput initialValue = G.input getInput inputField initialValue
   where
   inputField i a = input_ [type_ "text", id_ (encodeFormId i), name_ (encodeFormId i), value_ (toPathPiece a)]
 
-inputTextMReq
-  :: (Monad m, FormError input err, PathPiece text, Applicative f)
+inputMaybeText
+  :: (Environment m input, FormError input err, PathPiece text, Applicative f)
   => (input -> Either err text)
   -> Maybe text
-  -> Form m input err (HtmlT f ()) text
-inputTextMReq getInput initialValue = G.inputMaybeReq getInput inputField initialValue
+  -> Form m input err (HtmlT f ()) (Maybe text)
+inputMaybeText getInput initialValue = G.inputMaybe getInput inputField initialValue
   where
-  inputField i Nothing = input_ [type_ "text", id_ (encodeFormId i), name_ (encodeFormId i), required_ "required"]
-  inputField i (Just a) = input_ [type_ "text", id_ (encodeFormId i), name_ (encodeFormId i), value_ (toPathPiece a), required_ "required"]
+  inputField i a = let attrs = maybe [] (pure . value_ . toPathPiece) a in 
+    input_ $ type_ "text" : id_ (encodeFormId i) : name_ (encodeFormId i) : attrs
 
 inputPassword
-  :: (Monad m, FormError input err, PathPiece text, Applicative f)
+  :: (Environment m input, FormError input err, PathPiece text, Applicative f)
   => (input -> Either err text)
   -> text
   -> Form m input err (HtmlT f ()) text
@@ -46,7 +46,7 @@ inputPassword getInput initialValue = G.input getInput inputField initialValue
   inputField i a = input_ [type_ "password", id_ (encodeFormId i), name_ (encodeFormId i), value_ (toPathPiece a)]
 
 inputSubmit
-  :: (Monad m, FormError input err, PathPiece text, Applicative f)
+  :: (Environment m input, FormError input err, PathPiece text, Applicative f)
   => (input -> Either err text)
   -> text
   -> Form m input err (HtmlT f ()) (Maybe text)
@@ -55,7 +55,7 @@ inputSubmit getInput initialValue = G.inputMaybe getInput inputField (Just initi
   inputField i a = input_ [type_ "submit", id_ (encodeFormId i), name_ (encodeFormId i), value_ (toPathPiece a)]
 
 inputReset
-  :: (Monad m, FormError input err, PathPiece text, Applicative f)
+  :: (Environment m input, FormError input err, PathPiece text, Applicative f)
   => text
   -> Form m input err (HtmlT f ()) ()
 inputReset lbl = G.inputNoData inputField
@@ -63,7 +63,7 @@ inputReset lbl = G.inputNoData inputField
   inputField i = input_ [type_ "submit", id_ (encodeFormId i), name_ (encodeFormId i), value_ (toPathPiece lbl)]
 
 inputHidden
-  :: (Monad m, FormError input err, PathPiece text, Applicative f)
+  :: (Environment m input, FormError input err, PathPiece text, Applicative f)
   => (input -> Either err text)
   -> text
   -> Form m input err (HtmlT f ()) text
@@ -72,7 +72,7 @@ inputHidden getInput initialValue = G.input getInput inputField initialValue
   inputField i a = input_ [type_ "hidden", id_ (encodeFormId i), name_ (encodeFormId i), value_ (toPathPiece a)]
 
 inputButton
-  :: (Monad m, FormError input err, PathPiece text, Applicative f)
+  :: (Environment m input, FormError input err, PathPiece text, Applicative f)
   => text
   -> Form m input err (HtmlT f ()) ()
 inputButton lbl = G.inputNoData inputField
@@ -80,7 +80,7 @@ inputButton lbl = G.inputNoData inputField
   inputField i = input_ [type_ "button", id_ (encodeFormId i), name_ (encodeFormId i), value_ (toPathPiece lbl)]
 
 textarea
-  :: (Monad m, FormError input err, ToHtml text, Monad f)
+  :: (Environment m input, FormError input err, ToHtml text, Monad f)
   => (input -> Either err text)
   -> Int -- ^ cols
   -> Int -- ^ rows
@@ -101,7 +101,7 @@ textarea getInput cols rows initialValue = G.input getInput textareaView initial
 --
 -- This control may succeed even if the user does not actually select a file to upload. In that case the uploaded name will likely be \"\" and the file contents will be empty as well.
 inputFile
-  :: (Monad m, FormError input err, FormInput input, Applicative f)
+  :: (Environment m input, FormError input err, FormInput input, Applicative f, ft ~ FileType input, Monoid ft)
   => Form m input err (HtmlT f ()) (FileType input)
 inputFile = G.inputFile fileView
   where
@@ -109,7 +109,7 @@ inputFile = G.inputFile fileView
 
 -- | Create a @\<button type=\"submit\"\>@ element
 buttonSubmit
-  :: (Monad m, FormError input err, PathPiece text, ToHtml children, Monad f)
+  :: (Environment m input, FormError input err, PathPiece text, ToHtml children, Monad f)
   => (input -> Either err text)
   -> text
   -> children
@@ -122,7 +122,7 @@ buttonSubmit getInput text c = G.inputMaybe getInput inputField (Just text)
 --
 -- This element does not add any data to the form data set.
 buttonReset
-  :: (Monad m, FormError input err, ToHtml children, Monad f)
+  :: (Environment m input, FormError input err, ToHtml children, Monad f)
   => children
   -> Form m input err (HtmlT f ()) ()
 buttonReset c = G.inputNoData inputField 
@@ -133,7 +133,7 @@ buttonReset c = G.inputNoData inputField
 --
 -- This element does not add any data to the form data set.
 button
-  :: (Monad m, FormError input err, ToHtml children, Monad f)
+  :: (Environment m input, FormError input err, ToHtml children, Monad f)
   => children
   -> Form m input err (HtmlT f ()) ()
 button c = G.inputNoData inputField
@@ -146,21 +146,20 @@ button c = G.inputNoData inputField
 --
 -- > label "some input field: " ++> inputText ""
 label
-  :: (Monad m, Monad f)
+  :: (Environment m input, Monad f)
   => HtmlT f ()
   -> Form m input err (HtmlT f ()) ()
 label c = G.label mkLabel
   where
   mkLabel i = label_ [for_ (encodeFormId i)] c
 
-arbitraryHtml :: Monad m => view -> Form m input err view ()
+arbitraryHtml :: Environment m input => view -> Form m input err view ()
 arbitraryHtml wrap =
-  Form $ do
+  Form (successDecode ()) (pure ()) $ do
     id' <- getFormId
     pure
       ( View (const $ wrap)
-      , pure
-        ( Ok $ Proved
+      , ( Ok $ Proved
           { pos = unitRange id'
           , unProved = ()
           }
@@ -168,7 +167,7 @@ arbitraryHtml wrap =
       )
 
 inputInt
-  :: (Monad m, FormError input err, Applicative f)
+  :: (Environment m input, FormError input err, Applicative f)
   => (input -> Either err Int)
   -> Int
   -> Form m input err (HtmlT f ()) Int
@@ -183,7 +182,7 @@ inputInt getInput initialValue = G.input getInput inputField initialValue
       ]
 
 inputDouble
-  :: (Monad m, FormError input err, Applicative f)
+  :: (Environment m input, FormError input err, Applicative f)
   => (input -> Either err Double)
   -> Double
   -> Form m input err (HtmlT f ()) Double
@@ -197,11 +196,11 @@ inputDouble getInput initialValue = G.input getInput inputField initialValue
 --
 -- see also 'inputCheckboxes'
 inputCheckbox
-  :: forall err input m f. (Monad m, FormError input err, Applicative f)
+  :: forall err input m f. (Environment m input, FormError input err, Applicative f)
   => Bool -- ^ initially checked
   -> Form m input err (HtmlT f ()) Bool
 inputCheckbox initiallyChecked =
-  Form $ do
+  Form (successDecode True) (pure initiallyChecked) $ do
     i <- getFormId
     v <- getFormInput' i
     case v of
@@ -216,8 +215,7 @@ inputCheckbox initiallyChecked =
               [type_ "checkbox", id_ (encodeFormId i), name_ (encodeFormId i), value_ (encodeFormId i)]
      in pure
           ( View $ const $ checkbox
-          , pure $
-            Ok
+          , Ok
               ( Proved
                 { pos = unitRange i
                 , unProved = if checked then True else False
@@ -228,7 +226,7 @@ inputCheckbox initiallyChecked =
 -- | Create a group of @\<input type=\"checkbox\"\>@ elements
 --
 inputCheckboxes
-  :: (Functor m, Monad m, FormError input err, FormInput input, Monad f, PathPiece a, Eq a)
+  :: (Functor m, Environment m input, FormError input err, FormInput input, Monad f, PathPiece a, Eq a)
   => [(a, Html ())] -- ^ value, label, initially checked
   -> (input -> Either err [a])
   -> (a -> Bool) -- ^ function which indicates if a value should be checked initially
@@ -247,8 +245,8 @@ inputCheckboxes choices fromInput isChecked =
 
 -- | Create a group of @\<input type=\"radio\"\>@ elements
 inputRadio
-  :: (Functor m, Monad m, FormError input err, FormInput input, Monad f, PathPiece a, Eq a)
-  => [(a, Html ())] -- ^ value, label, initially checked
+  :: (Functor m, Environment m input, FormError input err, FormInput input, Monad f, PathPiece a, Eq a)
+  => NonEmpty (a, Html ()) -- ^ value, label, initially checked
   -> (input -> Either err a)
   -> (a -> Bool) -- ^ isDefault
   -> Form m input err (HtmlT f ()) a
@@ -268,8 +266,8 @@ inputRadio choices fromInput isDefault =
 --
 -- see also: 'selectMultiple'
 select
-  :: (Functor m, Monad m, FormError input err, FormInput input, Monad f, PathPiece a, Eq a)
-  => [(a, Html ())] -- ^ value, label
+  :: (Functor m, Environment m input, FormError input err, FormInput input, Monad f, PathPiece a, Eq a)
+  => NonEmpty (a, Html ()) -- ^ value, label
   -> (input -> Either err a)
   -> (a -> Bool) -- ^ isDefault, must match *exactly one* element in the list of choices
   -> Form m input err (HtmlT f ()) a
@@ -292,7 +290,7 @@ select choices fromInput isDefault =
 --
 -- This creates a @\<select\>@ element which allows more than one item to be selected.
 selectMultiple
-  :: (Functor m, Monad m, FormError input err, FormInput input, Monad f, PathPiece a, Eq a)
+  :: (Functor m, Environment m input, FormError input err, FormInput input, Monad f, PathPiece a, Eq a)
   => [(a, Html ())] -- ^ value, label, initially checked
   -> (input -> Either err [a])
   -> (a -> Bool) -- ^ isSelected initially
